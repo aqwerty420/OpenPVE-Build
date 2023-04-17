@@ -1004,6 +1004,18 @@ ____exports.varSettings = {
 }
 return ____exports
  end,
+["core.ui.index"] = function(...) 
+local ____exports = {}
+do
+    local ____export = require("core.ui.init")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+return ____exports
+ end,
 ["core.ui.statusFrame.toggle"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -1192,8 +1204,8 @@ return ____exports
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local ____exports = {}
-local ____init = require("core.ui.init")
-local ui = ____init.ui
+local _____2E_2E = require("core.ui.index")
+local ui = _____2E_2E.ui
 ____exports.Checkbox = __TS__Class()
 local Checkbox = ____exports.Checkbox
 Checkbox.name = "Checkbox"
@@ -1213,8 +1225,8 @@ return ____exports
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local ____exports = {}
-local ____init = require("core.ui.init")
-local ui = ____init.ui
+local _____2E_2E = require("core.ui.index")
+local ui = _____2E_2E.ui
 ____exports.Dropdown = __TS__Class()
 local Dropdown = ____exports.Dropdown
 Dropdown.name = "Dropdown"
@@ -1234,8 +1246,8 @@ return ____exports
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local ____exports = {}
-local ____init = require("core.ui.init")
-local ui = ____init.ui
+local _____2E_2E = require("core.ui.index")
+local ui = _____2E_2E.ui
 ____exports.Slider = __TS__Class()
 local Slider = ____exports.Slider
 Slider.name = "Slider"
@@ -1254,14 +1266,14 @@ return ____exports
 ["core.ui.gui.widgets.modes.cooldownMode"] = function(...) 
 local ____exports = {}
 ____exports.CooldownMode = CooldownMode or ({})
-____exports.CooldownMode.always = 0
-____exports.CooldownMode[____exports.CooldownMode.always] = "always"
-____exports.CooldownMode.toggle = 1
-____exports.CooldownMode[____exports.CooldownMode.toggle] = "toggle"
-____exports.CooldownMode.miniToggle = 2
-____exports.CooldownMode[____exports.CooldownMode.miniToggle] = "miniToggle"
-____exports.CooldownMode.never = 3
-____exports.CooldownMode[____exports.CooldownMode.never] = "never"
+____exports.CooldownMode.Always = 0
+____exports.CooldownMode[____exports.CooldownMode.Always] = "Always"
+____exports.CooldownMode.Toggle = 1
+____exports.CooldownMode[____exports.CooldownMode.Toggle] = "Toggle"
+____exports.CooldownMode.MiniToggle = 2
+____exports.CooldownMode[____exports.CooldownMode.MiniToggle] = "MiniToggle"
+____exports.CooldownMode.Never = 3
+____exports.CooldownMode[____exports.CooldownMode.Never] = "Never"
 return ____exports
  end,
 ["core.ui.gui.widgets.modes.index"] = function(...) 
@@ -1280,7 +1292,7 @@ return ____exports
 local ____exports = {}
 local ____cooldownMode = require("core.ui.gui.widgets.modes.cooldownMode")
 local CooldownMode = ____cooldownMode.CooldownMode
-____exports.cooldownOptions = {{label = "Always", value = CooldownMode.always, tooltip = "Always use."}, {label = "On Toggle", value = CooldownMode.toggle, tooltip = "Use on cooldowns &/or mini cooldowns toggle."}, {label = "On Mini Toggle", value = CooldownMode.miniToggle, tooltip = "Use on mini cooldowns toggle."}, {label = "Never", value = CooldownMode.never, tooltip = "Never use."}}
+____exports.cooldownOptions = {{label = "Always", value = CooldownMode.Always, tooltip = "Always use."}, {label = "On Toggle", value = CooldownMode.Toggle, tooltip = "Use on cooldowns &/or mini cooldowns toggle."}, {label = "On Mini Toggle", value = CooldownMode.MiniToggle, tooltip = "Use on mini cooldowns toggle."}, {label = "Never", value = CooldownMode.Never, tooltip = "Never use."}}
 return ____exports
  end,
 ["core.ui.gui.widgets.options.index"] = function(...) 
@@ -1300,9 +1312,9 @@ local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__ClassExtends = ____lualib.__TS__ClassExtends
 local ____exports = {}
-local ____init = require("core.ui.init")
-local ui = ____init.ui
-local varSettings = ____init.varSettings
+local _____2E_2E = require("core.ui.index")
+local ui = _____2E_2E.ui
+local varSettings = _____2E_2E.varSettings
 local ____dropdown = require("core.ui.gui.widgets.dropdown")
 local Dropdown = ____dropdown.Dropdown
 local ____modes = require("core.ui.gui.widgets.modes.index")
@@ -1315,7 +1327,7 @@ Cooldown.name = "Cooldown"
 __TS__ClassExtends(Cooldown, Dropdown)
 function Cooldown.prototype.____constructor(self, tab, eVar, name, textureId, defaultValue)
     if defaultValue == nil then
-        defaultValue = CooldownMode.toggle
+        defaultValue = CooldownMode.Toggle
     end
     Dropdown.prototype.____constructor(
         self,
@@ -1334,7 +1346,7 @@ function Cooldown.prototype.Enabled(self, ignoreTTD)
         ignoreTTD = false
     end
     local value = self:Value()
-    return (ignoreTTD or not ui.settings[varSettings.minTTDVar] or awful.FightRemains() > ui.settings[varSettings.minTTDValueVar]) and (value == CooldownMode.always or (value == CooldownMode.toggle or value == CooldownMode.miniToggle) and ui.settings[varSettings.cdsToggleVar] or value == CooldownMode.miniToggle and ui.settings[varSettings.mCdsToggleVar])
+    return (ignoreTTD or not ui.settings[varSettings.minTTDVar] or awful.FightRemains() > ui.settings[varSettings.minTTDValueVar]) and (value == CooldownMode.Always or (value == CooldownMode.Toggle or value == CooldownMode.MiniToggle) and ui.settings[varSettings.cdsToggleVar] or value == CooldownMode.MiniToggle and ui.settings[varSettings.mCdsToggleVar])
 end
 ____exports.SpellCooldown = __TS__Class()
 local SpellCooldown = ____exports.SpellCooldown
@@ -1470,8 +1482,8 @@ local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__New = ____lualib.__TS__New
 local ____exports = {}
-local ____init = require("core.ui.init")
-local ui = ____init.ui
+local _____2E_2E = require("core.ui.index")
+local ui = _____2E_2E.ui
 local ____separator = require("core.ui.gui.widgets.separator")
 local Separator = ____separator.Separator
 local ____widgets = require("core.ui.gui.widgets.index")
@@ -1524,8 +1536,8 @@ local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__New = ____lualib.__TS__New
 local ____exports = {}
-local ____init = require("core.ui.init")
-local ui = ____init.ui
+local _____2E_2E = require("core.ui.index")
+local ui = _____2E_2E.ui
 local ____tab = require("core.ui.gui.tab")
 local Tab = ____tab.Tab
 ____exports.Group = __TS__Class()
@@ -1563,8 +1575,8 @@ return ____exports
 local ____lualib = require("lualib_bundle")
 local __TS__New = ____lualib.__TS__New
 local ____exports = {}
-local ____init = require("core.ui.init")
-local varSettings = ____init.varSettings
+local _____2E = require("core.ui.index")
+local varSettings = _____2E.varSettings
 local ____statusFrame = require("core.ui.statusFrame.index")
 local CooldownsToggle = ____statusFrame.CooldownsToggle
 local RotationModeSwitch = ____statusFrame.RotationModeSwitch
@@ -1587,16 +1599,16 @@ ____exports.mCooldownsToggle = __TS__New(
     varSettings.mCdsDisableValueVar,
     "M.Cds: "
 )
-local generalTab = __TS__New(Tab, "General")
-generalTab:Header({text = "Fight"})
-____exports.startCombat = generalTab:Checkbox({var = "startCombat", text = "Start Combat", tooltip = "Engage combat when the target is in range."})
-generalTab:Separator()
-generalTab:Header({text = "Targeting"})
-____exports.autoTarget = generalTab:Checkbox({var = "autoTarget", text = "Auto Target", tooltip = "Automatically swap to the best target when the current one dies."})
-local cooldownsTab = __TS__New(Tab, "Cooldowns")
-cooldownsTab:Header({text = "TTD Checker"})
-____exports.checkMinTTD = cooldownsTab:Checkbox({var = varSettings.minTTDVar, text = "Check for minimum TTD", tooltip = "Check for minimum TTD before using cooldowns.", default = false})
-____exports.minTTD = cooldownsTab:Slider({
+____exports.generalTab = __TS__New(Tab, "General")
+____exports.generalTab:Header({text = "Fight"})
+____exports.startCombat = ____exports.generalTab:Checkbox({var = "startCombat", text = "Start Combat", tooltip = "Engage combat when the target is in range."})
+____exports.generalTab:Separator()
+____exports.generalTab:Header({text = "Targeting"})
+____exports.autoTarget = ____exports.generalTab:Checkbox({var = "autoTarget", text = "Auto Target", tooltip = "Automatically swap to the best target when the current one dies."})
+____exports.cooldownsTab = __TS__New(Tab, "Cooldowns")
+____exports.cooldownsTab:Header({text = "TTD Checker"})
+____exports.checkMinTTD = ____exports.cooldownsTab:Checkbox({var = varSettings.minTTDVar, text = "Check for minimum TTD", tooltip = "Check for minimum TTD before using cooldowns.", default = false})
+____exports.minTTD = ____exports.cooldownsTab:Slider({
     var = varSettings.minTTDValueVar,
     text = "Minimum TTD",
     tooltip = "Minimum TTD to use cooldowns.",
@@ -1606,10 +1618,10 @@ ____exports.minTTD = cooldownsTab:Slider({
     valueType = "sec",
     step = 1
 })
-cooldownsTab:Separator()
-cooldownsTab:Header({text = "Cooldowns Disabler"})
-____exports.cdsDisabler = cooldownsTab:Checkbox({var = varSettings.cdsDisableVar, text = "Disable Cooldowns", tooltip = "Disable cooldowns after a certain amount of time.", default = false})
-____exports.cdsDisablerValue = cooldownsTab:Slider({
+____exports.cooldownsTab:Separator()
+____exports.cooldownsTab:Header({text = "Cooldowns Disabler"})
+____exports.cdsDisabler = ____exports.cooldownsTab:Checkbox({var = varSettings.cdsDisableVar, text = "Disable Cooldowns", tooltip = "Disable cooldowns after a certain amount of time.", default = false})
+____exports.cdsDisablerValue = ____exports.cooldownsTab:Slider({
     var = varSettings.cdsDisableValueVar,
     text = "Disable Cooldowns After",
     tooltip = "Disable cooldowns after set amount of time.",
@@ -1619,8 +1631,8 @@ ____exports.cdsDisablerValue = cooldownsTab:Slider({
     valueType = "sec",
     step = 1
 })
-____exports.mCdsDisabler = cooldownsTab:Checkbox({var = varSettings.mCdsDisableVar, text = "Disable Mini Cooldowns", tooltip = "Disable mini cooldowns after a certain amount of time.", default = false})
-____exports.mCdsDisablerValue = cooldownsTab:Slider({
+____exports.mCdsDisabler = ____exports.cooldownsTab:Checkbox({var = varSettings.mCdsDisableVar, text = "Disable Mini Cooldowns", tooltip = "Disable mini cooldowns after a certain amount of time.", default = false})
+____exports.mCdsDisablerValue = ____exports.cooldownsTab:Slider({
     var = varSettings.mCdsDisableValueVar,
     text = "Disable Mini Cooldowns After",
     tooltip = "Disable mini cooldowns after set amount of time.",
@@ -1629,7 +1641,7 @@ ____exports.mCdsDisablerValue = cooldownsTab:Slider({
     default = 6,
     valueType = "sec"
 })
-cooldownsTab:Separator()
+____exports.cooldownsTab:Separator()
 local interruptsTab = __TS__New(Tab, "Interrupts")
 interruptsTab:Header({text = "Conditions"})
 ____exports.whitelist = interruptsTab:Checkbox({var = "interruptWhitelist", text = "Whitelisted Only", tooltip = "Only interrupt spells on the whitelist.", default = false})
@@ -1645,7 +1657,7 @@ ____exports.minCastPercent = interruptsTab:Slider({
     step = 5
 })
 ____exports.interruptDelay = interruptsTab:Delay({var = "interrupt", text = "Interrupt"})
-generalTab:Separator()
+____exports.generalTab:Separator()
 interruptsTab:Header({text = "Spells"})
 ____exports.defensivesTab = __TS__New(Tab, "Defensives")
 return ____exports
@@ -1774,6 +1786,199 @@ ____exports.lightsJudgment = awful.NewSpell(255647, {targeted = false, ranged = 
 ____exports.bagOfTricks = awful.NewSpell(312411, {targeted = true, ranged = true, damage = "physical"})
 ____exports.berserking = awful.NewSpell(26297, {targeted = false})
 ____exports.arcaneTorrent = awful.NewSpell(25046, {targeted = false})
+return ____exports
+ end,
+["hunter.ui.gui.widgets.modes.misdirectionMode"] = function(...) 
+local ____exports = {}
+____exports.MisdirectionMode = MisdirectionMode or ({})
+____exports.MisdirectionMode.Smart = "smart"
+____exports.MisdirectionMode.Engage = "engage"
+____exports.MisdirectionMode.Aggro = "aggro"
+____exports.MisdirectionMode.Always = "always"
+____exports.MisdirectionMode.Never = "never"
+return ____exports
+ end,
+["hunter.ui.gui.widgets.modes.index"] = function(...) 
+local ____exports = {}
+do
+    local ____export = require("hunter.ui.gui.widgets.modes.misdirectionMode")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+return ____exports
+ end,
+["hunter.ui.gui.widgets.options.misdirectionOptions"] = function(...) 
+local ____exports = {}
+local ____modes = require("hunter.ui.gui.widgets.modes.index")
+local MisdirectionMode = ____modes.MisdirectionMode
+____exports.misdirectionOptions = {
+    {label = "Smart", value = MisdirectionMode.Smart, tooltip = "Use on engage and when taking aggro"},
+    {label = "Engage", value = MisdirectionMode.Engage, tooltip = "Use on combat start."},
+    {label = "Aggro", value = MisdirectionMode.Aggro, tooltip = "Use when taking aggro of a mob."},
+    {label = "Always", value = MisdirectionMode.Always, tooltip = "Always use on cooldown."},
+    {label = "Never", value = MisdirectionMode.Never, tooltip = "Never use."}
+}
+return ____exports
+ end,
+["hunter.ui.gui.widgets.options.index"] = function(...) 
+local ____exports = {}
+do
+    local ____export = require("hunter.ui.gui.widgets.options.misdirectionOptions")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+return ____exports
+ end,
+["hunter.ui.gui.widgets.misdirectionModeSelector"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local ____exports = {}
+local ____widgets = require("core.ui.gui.widgets.index")
+local Dropdown = ____widgets.Dropdown
+local ____loader = require("core.ui.loader")
+local generalTab = ____loader.generalTab
+local spells = require("hunter.spells")
+local ____modes = require("hunter.ui.gui.widgets.modes.index")
+local MisdirectionMode = ____modes.MisdirectionMode
+local ____options = require("hunter.ui.gui.widgets.options.index")
+local misdirectionOptions = ____options.misdirectionOptions
+____exports.MisdirectionModeSelector = __TS__Class()
+local MisdirectionModeSelector = ____exports.MisdirectionModeSelector
+MisdirectionModeSelector.name = "MisdirectionModeSelector"
+__TS__ClassExtends(MisdirectionModeSelector, Dropdown)
+function MisdirectionModeSelector.prototype.____constructor(self)
+    local name = spells.misdirection.name
+    Dropdown.prototype.____constructor(
+        self,
+        generalTab,
+        {
+            var = "missdirectionModdes",
+            options = misdirectionOptions,
+            header = (awful.textureEscape(spells.misdirection.id, 20) .. " - ") .. name,
+            tooltip = name .. " usage mode.",
+            default = MisdirectionMode.Smart
+        }
+    )
+end
+function MisdirectionModeSelector.prototype.OnEngage(self)
+    return self:Value() == MisdirectionMode.Smart or self:Value() == MisdirectionMode.Engage
+end
+function MisdirectionModeSelector.prototype.OnAggro(self)
+    return self:Value() == MisdirectionMode.Smart or self:Value() == MisdirectionMode.Aggro
+end
+function MisdirectionModeSelector.prototype.Always(self)
+    return self:Value() == MisdirectionMode.Always
+end
+return ____exports
+ end,
+["hunter.ui.gui.widgets.index"] = function(...) 
+local ____exports = {}
+do
+    local ____export = require("hunter.ui.gui.widgets.misdirectionModeSelector")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+return ____exports
+ end,
+["hunter.ui.statusFrame.petSlotSelector"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local ____exports = {}
+local ____ui = require("core.ui.index")
+local ui = ____ui.ui
+____exports.PetSlotSelector = __TS__Class()
+local PetSlotSelector = ____exports.PetSlotSelector
+PetSlotSelector.name = "PetSlotSelector"
+function PetSlotSelector.prototype.____constructor(self)
+    self._var = "petSlot"
+    ui.statusFrame:Toggle({
+        label = "Pet: ",
+        var = self._var,
+        onClick = function() return self:Press() end,
+        valueText = function() return self:ValueText() end
+    })
+    if not self:Value() then
+        ui.settings[self._var] = 1
+    end
+end
+function PetSlotSelector.prototype.ValueText(self)
+    return "|cffbfff81" .. tostring(self:Value())
+end
+function PetSlotSelector.prototype.Press(self)
+    self:Set(self:Value() + 1)
+    if self:Value() > 5 then
+        self:Set(0)
+    end
+end
+function PetSlotSelector.prototype.Set(self, value)
+    ui.settings[self._var] = value
+end
+function PetSlotSelector.prototype.Value(self)
+    return ui.settings[self._var]
+end
+function PetSlotSelector.prototype.Enabled(self)
+    return self:Value() ~= 0
+end
+function PetSlotSelector.prototype.Disabled(self)
+    return self:Value() == 0
+end
+return ____exports
+ end,
+["hunter.ui.statusFrame.index"] = function(...) 
+local ____exports = {}
+do
+    local ____export = require("hunter.ui.statusFrame.petSlotSelector")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+return ____exports
+ end,
+["hunter.ui.loader"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__New = ____lualib.__TS__New
+local ____exports = {}
+local ____modes = require("core.ui.gui.widgets.modes.index")
+local CooldownMode = ____modes.CooldownMode
+local ____loader = require("core.ui.loader")
+local cooldownsTab = ____loader.cooldownsTab
+local generalTab = ____loader.generalTab
+local spells = require("hunter.spells")
+local ____widgets = require("hunter.ui.gui.widgets.index")
+local MisdirectionModeSelector = ____widgets.MisdirectionModeSelector
+local ____statusFrame = require("hunter.ui.statusFrame.index")
+local PetSlotSelector = ____statusFrame.PetSlotSelector
+____exports.misdirectionMode = __TS__New(MisdirectionModeSelector)
+____exports.maxSerpentSting = generalTab:Slider({
+    var = "maxSerpentSting",
+    text = "Max Serpent Sting",
+    tooltip = "Maximum number of Serpent Sting active.",
+    default = 2,
+    min = 1,
+    max = 5,
+    step = 1
+})
+____exports.petSlot = __TS__New(PetSlotSelector)
+____exports.aMurderofCrows = cooldownsTab:SpellCooldown(spells.aMurderofCrows, CooldownMode.Always)
+____exports.aspectOfTheWild = cooldownsTab:SpellCooldown(spells.aspectOfTheWild, CooldownMode.Toggle)
+____exports.barrage = cooldownsTab:SpellCooldown(spells.barrage, CooldownMode.Always)
+____exports.deathChakram = cooldownsTab:SpellCooldown(spells.deathChakram, CooldownMode.Always)
+____exports.explosiveShot = cooldownsTab:SpellCooldown(spells.explosiveShot, CooldownMode.Always)
+____exports.stampede = cooldownsTab:SpellCooldown(spells.stampede, CooldownMode.Toggle)
+____exports.steelTrap = cooldownsTab:SpellCooldown(spells.steelTrap, CooldownMode.Always)
+____exports.wailingArrow = cooldownsTab:SpellCooldown(spells.wailingArrow, CooldownMode.Always)
 return ____exports
  end,
 }
