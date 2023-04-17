@@ -107,7 +107,7 @@ ____exports.load = function()
 end
 return ____exports
  end,
-["Loader"] = function(...) 
+["loader"] = function(...) 
 local ____exports = {}
 local hunter = require("hunter.index")
 awful.ttd_enabled = true
@@ -1307,6 +1307,22 @@ do
 end
 return ____exports
  end,
+["core.ui.gui.widgets.params.delayParams"] = function(...) 
+local ____exports = {}
+return ____exports
+ end,
+["core.ui.gui.widgets.params.cooldownParams"] = function(...) 
+local ____exports = {}
+return ____exports
+ end,
+["core.ui.gui.widgets.params.defensivesParams"] = function(...) 
+local ____exports = {}
+return ____exports
+ end,
+["core.ui.gui.widgets.params.index"] = function(...) 
+local ____exports = {}
+return ____exports
+ end,
 ["core.ui.gui.widgets.cooldown"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -1325,56 +1341,66 @@ ____exports.Cooldown = __TS__Class()
 local Cooldown = ____exports.Cooldown
 Cooldown.name = "Cooldown"
 __TS__ClassExtends(Cooldown, Dropdown)
-function Cooldown.prototype.____constructor(self, tab, eVar, name, textureId, defaultValue)
-    if defaultValue == nil then
-        defaultValue = CooldownMode.Toggle
-    end
+function Cooldown.prototype.____constructor(self, tab, params)
     Dropdown.prototype.____constructor(
         self,
         tab,
         {
-            var = eVar,
-            header = (awful.textureEscape(textureId, 20) .. " - ") .. name,
+            var = params.var,
+            header = params.usable and (awful.textureEscape(params.usable.id, 20) .. " - ") .. params.usable.name or params.header,
             options = cooldownOptions,
-            tooltip = name .. " usage mode.",
-            default = defaultValue
+            tooltip = params.usable and params.usable.name .. " usage mode." or params.tooltip,
+            default = params.default or CooldownMode.Toggle
         }
     )
 end
-function Cooldown.prototype.Enabled(self, ignoreTTD)
+function Cooldown.prototype.Usable(self, ignoreTTD)
     if ignoreTTD == nil then
         ignoreTTD = false
     end
     local value = self:Value()
     return (ignoreTTD or not ui.settings[varSettings.minTTDVar] or awful.FightRemains() > ui.settings[varSettings.minTTDValueVar]) and (value == CooldownMode.Always or (value == CooldownMode.Toggle or value == CooldownMode.MiniToggle) and ui.settings[varSettings.cdsToggleVar] or value == CooldownMode.MiniToggle and ui.settings[varSettings.mCdsToggleVar])
 end
-____exports.SpellCooldown = __TS__Class()
-local SpellCooldown = ____exports.SpellCooldown
-SpellCooldown.name = "SpellCooldown"
-__TS__ClassExtends(SpellCooldown, ____exports.Cooldown)
-function SpellCooldown.prototype.____constructor(self, tab, spell, defaultValue)
-    SpellCooldown.____super.prototype.____constructor(
-        self,
-        tab,
-        tostring(spell.id) .. "Mode",
-        spell.name,
-        spell.id,
-        defaultValue
-    )
+return ____exports
+ end,
+["core.ui.gui.widgets.defensive"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local ____exports = {}
+____exports.Defensive = __TS__Class()
+local Defensive = ____exports.Defensive
+Defensive.name = "Defensive"
+function Defensive.prototype.____constructor(self, tab, params)
+    self._checkbox = tab:Checkbox({
+        var = params.var .. "State",
+        text = params.usable and (awful.textureEscape(params.usable.id, 20) .. " - ") .. params.usable.name or (params.checkboxText or "TO_REPLACE"),
+        tooltip = params.usable and ("Use " .. params.usable.name) .. " as a defensive." or params.checkboxTooltip,
+        default = params.enabled
+    })
+    self._slider = tab:Slider({
+        var = params.var .. "Value",
+        text = "",
+        tooltip = params.usable and ("Minimum health to use " .. params.usable.name) .. " as a defensive." or params.sliderTooltip,
+        default = params.minHp,
+        min = 0,
+        max = 100,
+        step = 1
+    })
 end
-____exports.ItemCooldown = __TS__Class()
-local ItemCooldown = ____exports.ItemCooldown
-ItemCooldown.name = "ItemCooldown"
-__TS__ClassExtends(ItemCooldown, ____exports.Cooldown)
-function ItemCooldown.prototype.____constructor(self, tab, item, defaultValue)
-    ItemCooldown.____super.prototype.____constructor(
-        self,
-        tab,
-        tostring(item.id) .. "Mode",
-        item.name,
-        item.id,
-        defaultValue
-    )
+function Defensive.prototype.Enabled(self)
+    return self._checkbox:Enabled()
+end
+function Defensive.prototype.Toggle(self)
+    self._checkbox:Toggle()
+end
+function Defensive.prototype.Value(self)
+    return self._slider:Value()
+end
+function Defensive.prototype.Set(self, value)
+    self._slider:Set(value)
+end
+function Defensive.prototype.Usable(self)
+    return self:Enabled() and awful.player.hp <= self:Value()
 end
 return ____exports
  end,
@@ -1412,14 +1438,14 @@ do
         end
     end
 end
-return ____exports
- end,
-["core.ui.gui.widgets.params.delayParams"] = function(...) 
-local ____exports = {}
-return ____exports
- end,
-["core.ui.gui.widgets.params.index"] = function(...) 
-local ____exports = {}
+do
+    local ____export = require("core.ui.gui.widgets.defensive")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
 return ____exports
  end,
 ["core.ui.gui.widgets.delay"] = function(...) 
@@ -1489,9 +1515,9 @@ local Separator = ____separator.Separator
 local ____widgets = require("core.ui.gui.widgets.index")
 local Checkbox = ____widgets.Checkbox
 local Dropdown = ____widgets.Dropdown
-local ItemCooldown = ____widgets.ItemCooldown
 local Slider = ____widgets.Slider
-local SpellCooldown = ____widgets.SpellCooldown
+local Cooldown = ____widgets.Cooldown
+local Defensive = ____widgets.Defensive
 local ____delay = require("core.ui.gui.widgets.delay")
 local Delay = ____delay.Delay
 local ____header = require("core.ui.gui.widgets.header")
@@ -1514,11 +1540,11 @@ end
 function Tab.prototype.Text(self, params)
     self._tab:Text(params)
 end
-function Tab.prototype.SpellCooldown(self, spell, defaultValue)
-    return __TS__New(SpellCooldown, self._tab, spell, defaultValue)
+function Tab.prototype.Cooldown(self, params)
+    return __TS__New(Cooldown, self._tab, params)
 end
-function Tab.prototype.ItemCooldown(self, item, defaultValue)
-    return __TS__New(ItemCooldown, self._tab, item, defaultValue)
+function Tab.prototype.Defensive(self, params)
+    return __TS__New(Defensive, self, params)
 end
 function Tab.prototype.Separator(self)
     __TS__New(Separator, self._tab)
@@ -1971,15 +1997,15 @@ ____exports.maxSerpentSting = generalTab:Slider({
     step = 1
 })
 ____exports.petSlot = __TS__New(PetSlotSelector)
-____exports.aMurderofCrows = cooldownsTab:SpellCooldown(spells.aMurderofCrows, CooldownMode.Always)
-____exports.aspectOfTheWild = cooldownsTab:SpellCooldown(spells.aspectOfTheWild, CooldownMode.Toggle)
-____exports.barrage = cooldownsTab:SpellCooldown(spells.barrage, CooldownMode.Always)
-____exports.deathChakram = cooldownsTab:SpellCooldown(spells.deathChakram, CooldownMode.Always)
-____exports.explosiveShot = cooldownsTab:SpellCooldown(spells.explosiveShot, CooldownMode.Always)
-____exports.stampede = cooldownsTab:SpellCooldown(spells.stampede, CooldownMode.Toggle)
-____exports.steelTrap = cooldownsTab:SpellCooldown(spells.steelTrap, CooldownMode.Always)
-____exports.wailingArrow = cooldownsTab:SpellCooldown(spells.wailingArrow, CooldownMode.Always)
+____exports.aMurderofCrows = cooldownsTab:Cooldown({var = "aMurderofCrows", usable = spells.aMurderofCrows, default = CooldownMode.Always})
+____exports.aspectOfTheWild = cooldownsTab:Cooldown({var = "aspectOfTheWild", usable = spells.aspectOfTheWild, default = CooldownMode.Toggle})
+____exports.barrage = cooldownsTab:Cooldown({var = "barrage", usable = spells.barrage, default = CooldownMode.Always})
+____exports.deathChakram = cooldownsTab:Cooldown({var = "deathChakram", usable = spells.deathChakram, default = CooldownMode.Always})
+____exports.explosiveShot = cooldownsTab:Cooldown({var = "explosiveShot", usable = spells.explosiveShot, default = CooldownMode.Always})
+____exports.stampede = cooldownsTab:Cooldown({var = "stampede", usable = spells.stampede, default = CooldownMode.Toggle})
+____exports.steelTrap = cooldownsTab:Cooldown({var = "steelTrap", usable = spells.steelTrap, default = CooldownMode.Always})
+____exports.wailingArrow = cooldownsTab:Cooldown({var = "wailingArrow", usable = spells.wailingArrow, default = CooldownMode.Always})
 return ____exports
  end,
 }
-return require("Loader", ...)
+return require("loader", ...)
