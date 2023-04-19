@@ -1307,22 +1307,6 @@ do
 end
 return ____exports
  end,
-["core.ui.gui.widgets.params.delayParams"] = function(...) 
-local ____exports = {}
-return ____exports
- end,
-["core.ui.gui.widgets.params.cooldownParams"] = function(...) 
-local ____exports = {}
-return ____exports
- end,
-["core.ui.gui.widgets.params.defensivesParams"] = function(...) 
-local ____exports = {}
-return ____exports
- end,
-["core.ui.gui.widgets.params.index"] = function(...) 
-local ____exports = {}
-return ____exports
- end,
 ["core.ui.gui.widgets.cooldown"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
