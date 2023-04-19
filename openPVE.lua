@@ -1000,7 +1000,9 @@ ____exports.varSettings = {
     cdsDisableValueVar = "cdsDisableValue",
     mCdsToggleVar = "mCdsToggle",
     mCdsDisableVar = "mCdsDisable",
-    mCdsDisableValueVar = "mCdsDisableValue"
+    mCdsDisableValueVar = "mCdsDisableValue",
+    interruptsVar = "interrupts",
+    defensivesVar = "defensives"
 }
 return ____exports
  end,
@@ -1188,18 +1190,6 @@ do
 end
 return ____exports
  end,
-["core.ui.gui.widgets.separator"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-____exports.Separator = __TS__Class()
-local Separator = ____exports.Separator
-Separator.name = "Separator"
-function Separator.prototype.____constructor(self, tab)
-    tab:Text({text = "----------------------------------------"})
-end
-return ____exports
- end,
 ["core.ui.gui.widgets.checkbox"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -1376,50 +1366,6 @@ function Defensive.prototype.Usable(self)
 end
 return ____exports
  end,
-["core.ui.gui.widgets.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("core.ui.gui.widgets.checkbox")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.dropdown")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.slider")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.cooldown")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.defensive")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-return ____exports
- end,
 ["core.ui.gui.widgets.delay"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -1475,6 +1421,125 @@ function Header.prototype.____constructor(self, tab, params)
 end
 return ____exports
  end,
+["core.ui.gui.widgets.interrupt"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local ____exports = {}
+local _____2E_2E = require("core.ui.index")
+local ui = _____2E_2E.ui
+local varSettings = _____2E_2E.varSettings
+local ____checkbox = require("core.ui.gui.widgets.checkbox")
+local Checkbox = ____checkbox.Checkbox
+____exports.Interrupt = __TS__Class()
+local Interrupt = ____exports.Interrupt
+Interrupt.name = "Interrupt"
+__TS__ClassExtends(Interrupt, Checkbox)
+function Interrupt.prototype.____constructor(self, tab, params)
+    Checkbox.prototype.____constructor(
+        self,
+        tab,
+        {
+            var = params.var,
+            text = params.usable and (awful.textureEscape(params.usable.id, 20) .. " - ") .. params.usable.name or (params.text or "TO_REPLACE"),
+            tooltip = params.usable and ("Use  " .. params.usable.name) .. " to interrupt." or params.tooltip,
+            default = params.default
+        }
+    )
+end
+function Interrupt.prototype.Usable(self)
+    return Checkbox.prototype.Enabled(self) and ui.settings[varSettings.interruptsVar]
+end
+return ____exports
+ end,
+["core.ui.gui.widgets.separator"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local ____exports = {}
+____exports.Separator = __TS__Class()
+local Separator = ____exports.Separator
+Separator.name = "Separator"
+function Separator.prototype.____constructor(self, tab)
+    tab:Text({text = "----------------------------------------"})
+end
+return ____exports
+ end,
+["core.ui.gui.widgets.index"] = function(...) 
+local ____exports = {}
+do
+    local ____export = require("core.ui.gui.widgets.checkbox")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+do
+    local ____export = require("core.ui.gui.widgets.dropdown")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+do
+    local ____export = require("core.ui.gui.widgets.slider")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+do
+    local ____export = require("core.ui.gui.widgets.cooldown")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+do
+    local ____export = require("core.ui.gui.widgets.defensive")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+do
+    local ____export = require("core.ui.gui.widgets.delay")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+do
+    local ____export = require("core.ui.gui.widgets.header")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+do
+    local ____export = require("core.ui.gui.widgets.interrupt")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+do
+    local ____export = require("core.ui.gui.widgets.separator")
+    for ____exportKey, ____exportValue in pairs(____export) do
+        if ____exportKey ~= "default" then
+            ____exports[____exportKey] = ____exportValue
+        end
+    end
+end
+return ____exports
+ end,
 ["core.ui.gui.tab"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -1482,18 +1547,16 @@ local __TS__New = ____lualib.__TS__New
 local ____exports = {}
 local _____2E_2E = require("core.ui.index")
 local ui = _____2E_2E.ui
-local ____separator = require("core.ui.gui.widgets.separator")
-local Separator = ____separator.Separator
 local ____widgets = require("core.ui.gui.widgets.index")
 local Checkbox = ____widgets.Checkbox
 local Dropdown = ____widgets.Dropdown
 local Slider = ____widgets.Slider
 local Cooldown = ____widgets.Cooldown
 local Defensive = ____widgets.Defensive
-local ____delay = require("core.ui.gui.widgets.delay")
-local Delay = ____delay.Delay
-local ____header = require("core.ui.gui.widgets.header")
-local Header = ____header.Header
+local Delay = ____widgets.Delay
+local Header = ____widgets.Header
+local Separator = ____widgets.Separator
+local Interrupt = ____widgets.Interrupt
 ____exports.Tab = __TS__Class()
 local Tab = ____exports.Tab
 Tab.name = "Tab"
@@ -1517,6 +1580,9 @@ function Tab.prototype.Cooldown(self, params)
 end
 function Tab.prototype.Defensive(self, params)
     return __TS__New(Defensive, self, params)
+end
+function Tab.prototype.Interrupt(self, params)
+    return __TS__New(Interrupt, self._tab, params)
 end
 function Tab.prototype.Separator(self)
     __TS__New(Separator, self._tab)
@@ -1579,6 +1645,7 @@ local ____statusFrame = require("core.ui.statusFrame.index")
 local CooldownsToggle = ____statusFrame.CooldownsToggle
 local RotationModeSwitch = ____statusFrame.RotationModeSwitch
 local RotationToggle = ____statusFrame.RotationToggle
+local Toggle = ____statusFrame.Toggle
 local ____gui = require("core.ui.gui.index")
 local Tab = ____gui.Tab
 ____exports.rotationToggle = __TS__New(RotationToggle)
@@ -1597,6 +1664,7 @@ ____exports.mCooldownsToggle = __TS__New(
     varSettings.mCdsDisableValueVar,
     "M.Cds: "
 )
+____exports.interrupts = __TS__New(Toggle, varSettings.interruptsVar, "Int: ")
 ____exports.generalTab = __TS__New(Tab, "General")
 ____exports.generalTab:Header({text = "Fight"})
 ____exports.startCombat = ____exports.generalTab:Checkbox({var = "startCombat", text = "Start Combat", tooltip = "Engage combat when the target is in range."})
@@ -1640,11 +1708,11 @@ ____exports.mCdsDisablerValue = ____exports.cooldownsTab:Slider({
     valueType = "sec"
 })
 ____exports.cooldownsTab:Separator()
-local interruptsTab = __TS__New(Tab, "Interrupts")
-interruptsTab:Header({text = "Conditions"})
-____exports.whitelist = interruptsTab:Checkbox({var = "interruptWhitelist", text = "Whitelisted Only", tooltip = "Only interrupt spells on the whitelist.", default = false})
-____exports.focus = interruptsTab:Checkbox({var = "interruptFocus", text = "Focus Only", tooltip = "Only interrupt spells from the focus target."})
-____exports.minCastPercent = interruptsTab:Slider({
+____exports.interruptsTab = __TS__New(Tab, "Interrupts")
+____exports.interruptsTab:Header({text = "Conditions"})
+____exports.whitelist = ____exports.interruptsTab:Checkbox({var = "interruptWhitelist", text = "Whitelisted Only", tooltip = "Only interrupt spells on the whitelist.", default = false})
+____exports.focus = ____exports.interruptsTab:Checkbox({var = "interruptFocus", text = "Focus Only", tooltip = "Only interrupt spells from the focus target."})
+____exports.minCastPercent = ____exports.interruptsTab:Slider({
     var = "minCastPercent",
     text = "Min. cast %",
     tooltip = "Interrupt spells when they are at least this % cast.",
@@ -1654,9 +1722,9 @@ ____exports.minCastPercent = interruptsTab:Slider({
     valueType = "%",
     step = 5
 })
-____exports.interruptDelay = interruptsTab:Delay({var = "interrupt", text = "Interrupt"})
+____exports.interruptDelay = ____exports.interruptsTab:Delay({var = "interrupt", text = "Interrupt"})
 ____exports.generalTab:Separator()
-interruptsTab:Header({text = "Spells"})
+____exports.interruptsTab:Header({text = "Spells"})
 ____exports.defensivesTab = __TS__New(Tab, "Defensives")
 return ____exports
  end,
@@ -1958,6 +2026,7 @@ local CooldownMode = ____modes.CooldownMode
 local ____loader = require("core.ui.loader")
 local cooldownsTab = ____loader.cooldownsTab
 local generalTab = ____loader.generalTab
+local interruptsTab = ____loader.interruptsTab
 local spells = require("hunter.spells")
 local ____widgets = require("hunter.ui.gui.widgets.index")
 local MisdirectionModeSelector = ____widgets.MisdirectionModeSelector
@@ -1986,6 +2055,9 @@ ____exports.bestialWrath = cooldownsTab:Cooldown({var = "bestialWrath", usable =
 ____exports.bloodshed = cooldownsTab:Cooldown({var = "bloodshed", usable = spells.bloodshed, default = CooldownMode.Always})
 ____exports.callOfTheWild = cooldownsTab:Cooldown({var = "callOfTheWild", usable = spells.callOfTheWild, default = CooldownMode.Toggle})
 ____exports.direBeast = cooldownsTab:Cooldown({var = "direBeast", usable = spells.direBeast, default = CooldownMode.Always})
+____exports.counterShot = interruptsTab:Interrupt({var = "counterShot", usable = spells.counterShot, default = true})
+____exports.freezingTrap = interruptsTab:Interrupt({var = "freezingTrap", usable = spells.freezingTrap, default = true})
+____exports.intimidation = interruptsTab:Interrupt({var = "intimidation", usable = spells.intimidation, default = true})
 return ____exports
  end,
 }
