@@ -1371,13 +1371,13 @@ ____exports.Defensive = __TS__Class()
 local Defensive = ____exports.Defensive
 Defensive.name = "Defensive"
 function Defensive.prototype.____constructor(self, tab, params)
-    self._checkbox = tab:Checkbox({
+    self.checkbox = tab:Checkbox({
         var = params.var .. "State",
         text = params.usable and (awful.textureEscape(params.usable.id, 20) .. " - ") .. params.usable.name or (params.checkboxText or "TO_REPLACE"),
         tooltip = params.usable and ("Use " .. params.usable.name) .. " as a defensive." or params.checkboxTooltip,
         default = params.enabled
     })
-    self._slider = tab:Slider({
+    self.slider = tab:Slider({
         var = params.var .. "Value",
         text = "",
         tooltip = params.usable and ("Minimum health to use " .. params.usable.name) .. " as a defensive." or params.sliderTooltip,
@@ -1387,20 +1387,8 @@ function Defensive.prototype.____constructor(self, tab, params)
         step = 1
     })
 end
-function Defensive.prototype.Enabled(self)
-    return self._checkbox:Enabled()
-end
-function Defensive.prototype.Toggle(self)
-    self._checkbox:Toggle()
-end
-function Defensive.prototype.Value(self)
-    return self._slider:Value()
-end
-function Defensive.prototype.Set(self, value)
-    self._slider:Set(value)
-end
 function Defensive.prototype.Usable(self)
-    return self:Enabled() and awful.player.hp <= self:Value()
+    return self.checkbox:Enabled() and awful.player.hp <= self.slider:Value()
 end
 return ____exports
  end,
@@ -1817,11 +1805,16 @@ return ____exports
 ["hunter.ui.gui.widgets.modes.misdirectionMode"] = function(...) 
 local ____exports = {}
 ____exports.MisdirectionMode = MisdirectionMode or ({})
-____exports.MisdirectionMode.Smart = "smart"
-____exports.MisdirectionMode.Engage = "engage"
-____exports.MisdirectionMode.Aggro = "aggro"
-____exports.MisdirectionMode.Always = "always"
-____exports.MisdirectionMode.Never = "never"
+____exports.MisdirectionMode.Smart = 0
+____exports.MisdirectionMode[____exports.MisdirectionMode.Smart] = "Smart"
+____exports.MisdirectionMode.Engage = 1
+____exports.MisdirectionMode[____exports.MisdirectionMode.Engage] = "Engage"
+____exports.MisdirectionMode.Aggro = 2
+____exports.MisdirectionMode[____exports.MisdirectionMode.Aggro] = "Aggro"
+____exports.MisdirectionMode.Always = 3
+____exports.MisdirectionMode[____exports.MisdirectionMode.Always] = "Always"
+____exports.MisdirectionMode.Never = 4
+____exports.MisdirectionMode[____exports.MisdirectionMode.Never] = "Never"
 return ____exports
  end,
 ["hunter.ui.gui.widgets.modes.index"] = function(...) 
@@ -2005,6 +1998,10 @@ ____exports.explosiveShot = cooldownsTab:Cooldown({var = "explosiveShot", usable
 ____exports.stampede = cooldownsTab:Cooldown({var = "stampede", usable = spells.stampede, default = CooldownMode.Toggle})
 ____exports.steelTrap = cooldownsTab:Cooldown({var = "steelTrap", usable = spells.steelTrap, default = CooldownMode.Always})
 ____exports.wailingArrow = cooldownsTab:Cooldown({var = "wailingArrow", usable = spells.wailingArrow, default = CooldownMode.Always})
+____exports.bestialWrath = cooldownsTab:Cooldown({var = "bestialWrath", usable = spells.bestialWrath, default = CooldownMode.MiniToggle})
+____exports.bloodshed = cooldownsTab:Cooldown({var = "bloodshed", usable = spells.bloodshed, default = CooldownMode.Always})
+____exports.callOfTheWild = cooldownsTab:Cooldown({var = "callOfTheWild", usable = spells.callOfTheWild, default = CooldownMode.Toggle})
+____exports.direBeast = cooldownsTab:Cooldown({var = "direBeast", usable = spells.direBeast, default = CooldownMode.Always})
 return ____exports
  end,
 }
