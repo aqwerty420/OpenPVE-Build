@@ -1,5 +1,4 @@
 local Unlocker, awful, openPVE = ...
-
 local ____modules = {}
 local ____moduleCache = {}
 local ____originalRequire = require
@@ -2703,4 +2702,4 @@ hunterSpells.disengage:Callback(
 return ____exports
  end,
 }
-return require("loader", ...)
+require("loader", ...)
