@@ -103,6 +103,54 @@ return {
   __TS__ArrayForEach = __TS__ArrayForEach
 }
  end,
+["core.items"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__New = ____lualib.__TS__New
+local ____exports = {}
+local Trinket = __TS__Class()
+Trinket.name = "Trinket"
+function Trinket.prototype.____constructor(self, slot)
+    self.slot = slot
+    self.trinket = nil
+end
+function Trinket.prototype.canUse(self)
+    local start, ____, enable = awful.call("GetInventoryItemCooldown", "player", self.slot)
+    return enable == 1 and start == 0
+end
+function Trinket.prototype.use(self, ignoreGriefTorche)
+    if ignoreGriefTorche == nil then
+        ignoreGriefTorche = false
+    end
+    local player = awful.player
+    if not self:canUse() then
+        return false
+    end
+    local itemId = GetInventoryItemID("player", self.slot)
+    if self.trinket == nil or self.trinket.id ~= itemId then
+        self.trinket = awful.NewItem(itemId)
+    end
+    if self.trinket.casttime > 0 and player.moving then
+        return false
+    end
+    if ignoreGriefTorche == true and itemId == 194308 then
+        return false
+    end
+    if self.trinket:Use(awful.target) then
+        return true
+    end
+    return self.trinket:Use()
+end
+____exports.trinket1 = __TS__New(Trinket, 13)
+____exports.trinket2 = __TS__New(Trinket, 14)
+local newItem = awful.NewItem
+____exports.healthStone = newItem(5512)
+____exports.refreshingHealingPotionOne = newItem(191378)
+____exports.refreshingHealingPotionTwo = newItem(191379)
+____exports.refreshingHealingPotionThree = newItem(191380)
+____exports.refreshingHealingPotionOne:Use()
+return ____exports
+ end,
 ["core.components"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -518,6 +566,7 @@ local RotationToggle = ____components.RotationToggle
 local Tab = ____components.Tab
 local Toggle = ____components.Toggle
 local varSettings = ____components.varSettings
+local coreItems = require("core.items")
 ____exports.rotationToggle = __TS__New(RotationToggle)
 ____exports.rotationMode = __TS__New(RotationModeSwitch)
 ____exports.cooldownsToggle = __TS__New(
@@ -597,6 +646,8 @@ ____exports.interruptDelay = ____exports.interruptsTab:delay({var = "interrupt",
 ____exports.generalTab:separator()
 ____exports.interruptsTab:header({text = "Spells"})
 ____exports.defensivesTab = __TS__New(Tab, "Interrupts")
+____exports.healthStone = ____exports.defensivesTab:playerDefensive({var = "healthStone", usable = coreItems.healthStone, minHP = 40})
+____exports.refreshingHealingPotion = ____exports.defensivesTab:playerDefensive({var = "refreshingHealingPotion", usable = coreItems.refreshingHealingPotionThree, minHP = 40})
 return ____exports
  end,
 ["core.lists"] = function(...) 
@@ -1493,17 +1544,29 @@ ____exports.canStunEnemy = function(enemy, delay)
     delay = (delay or 0) + awful.buffer
     return (not coreUI.focus:enabled() or enemy.isUnit(awful.focus)) and not ____exports.isStunImmune(enemy) and (____exports.canStunCast(enemy, delay) or ____exports.canStunChannel(enemy, delay))
 end
-____exports.callSpells = function(spells) return __TS__ArrayForEach(
+____exports.callAll = function(spells) return __TS__ArrayForEach(
     spells,
-    function(____, spell) return spell() end
+    function(____, toCall) return toCall() end
 ) end
+____exports.useItem = function(item)
+    if not item.usable then
+        return false
+    end
+    return item:Use()
+end
 return ____exports
  end,
 ["core.rotation"] = function(...) 
 local ____exports = {}
+local ____items = require("core.items")
+local healthStone = ____items.healthStone
+local refreshingHealingPotionOne = ____items.refreshingHealingPotionOne
+local refreshingHealingPotionThree = ____items.refreshingHealingPotionThree
+local refreshingHealingPotionTwo = ____items.refreshingHealingPotionTwo
 local coreUI = require("core.ui")
 local ____utility = require("core.utility")
 local canCombat = ____utility.canCombat
+local useItem = ____utility.useItem
 ____exports.selectNewTarget = function(getEnemies)
     if not coreUI.autoTarget:enabled() or canCombat() then
         return
@@ -1519,6 +1582,10 @@ ____exports.selectNewTarget = function(getEnemies)
         bestEnemy.setTarget()
     end
 end
+____exports.coreDefensives = {
+    function() return coreUI.healthStone:usable() and useItem(healthStone) end,
+    function() return coreUI.refreshingHealingPotion:usable() and useItem(refreshingHealingPotionThree) and useItem(refreshingHealingPotionTwo) and useItem(refreshingHealingPotionOne) end
+}
 return ____exports
  end,
 ["core.cache"] = function(...) 
@@ -2011,7 +2078,9 @@ local disengageForwardInfos = ____utility.disengageForwardInfos
 local petStatus = ____utility.petStatus
 local hunterSpells = require("hunter.spells")
 local ____utility = require("core.utility")
-local callSpells = ____utility.callSpells
+local callAll = ____utility.callAll
+local ____rotation = require("core.rotation")
+local coreDefensives = ____rotation.coreDefensives
 local function callPet()
     local pet = awful.pet
     if hunterUI.petSlot:disabled() or not hunterUI.summonRevivePet:enabled() or pet.exists or petStatus.triedPetCall then
@@ -2030,10 +2099,11 @@ ____exports.defensivesHandler = function()
     if not player.combat then
         return
     end
-    callSpells(defensives)
+    callAll(defensives)
+    callAll(coreDefensives)
 end
 local interrupts = {hunterSpells.muzzle, hunterSpells.freezingTrap, hunterSpells.intimidation}
-____exports.interruptsHandler = function() return callSpells(interrupts) end
+____exports.interruptsHandler = function() return callAll(interrupts) end
 local function disengageForwardHandler()
     local player = awful.player
     if not hunterUI.disengageTrigger:enabled() then
