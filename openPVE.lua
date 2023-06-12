@@ -89,30 +89,515 @@ local function __TS__ArrayIncludes(self, searchElement, fromIndex)
     return false
 end
 
+local function __TS__ArrayForEach(self, callbackFn, thisArg)
+    for i = 1, #self do
+        callbackFn(thisArg, self[i], i - 1, self)
+    end
+end
+
 return {
   __TS__Class = __TS__Class,
   __TS__New = __TS__New,
   __TS__ClassExtends = __TS__ClassExtends,
   __TS__ObjectValues = __TS__ObjectValues,
-  __TS__ArrayIncludes = __TS__ArrayIncludes
+  __TS__ArrayIncludes = __TS__ArrayIncludes,
+  __TS__ArrayForEach = __TS__ArrayForEach
 }
  end,
-["hunter.index"] = function(...) 
+["core.components"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__New = ____lualib.__TS__New
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local __TS__ObjectValues = ____lualib.__TS__ObjectValues
+local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
 local ____exports = {}
-____exports.load = function()
-    openPVE.hunter = {}
-    openPVE.hunter.beastMastery = awful.Actor:New({spec = 1, class = "hunter"})
-    openPVE.hunter.beastMastery:Init(function()
-    end)
+local green = {170, 211, 114, 1}
+local white = {255, 255, 255, 1}
+local dark = {21, 21, 21, 0.45}
+____exports.projectTitle = "OpenPVE"
+____exports.projectCmd = "opve"
+local gui, settings, cmd = awful.UI:New(____exports.projectCmd, {title = ____exports.projectTitle, show = awful.DevMode, colors = {title = green, primary = white, accent = green, background = dark}})
+local statusFrame = gui:StatusFrame({fontSize = 6, maxWidth = 450, colors = {background = dark}})
+____exports.awfulUI = {gui = gui, settings = settings, cmd = cmd, statusFrame = statusFrame}
+____exports.varSettings = {
+    minTTDVar = "minTTD",
+    minTTDValueVar = "minTTDValue",
+    cdsToggleVar = "cdsToggle",
+    cdsDisableVar = "cdsDisable",
+    cdsDisableValueVar = "cdsDisableValue",
+    mCdsToggleVar = "mCdsToggle",
+    mCdsDisableVar = "mCdsDisable",
+    mCdsDisableValueVar = "mCdsDisableValue",
+    interruptsVar = "interrupts",
+    defensivesVar = "defensives"
+}
+____exports.Tab = __TS__Class()
+local Tab = ____exports.Tab
+Tab.name = "Tab"
+function Tab.prototype.____constructor(self, name, group)
+    self.tab = group and group:Tab(name) or gui:Tab(name)
+end
+function Tab.prototype.checkbox(self, params)
+    return __TS__New(____exports.Checkbox, self.tab, params)
+end
+function Tab.prototype.dropdown(self, params)
+    return __TS__New(____exports.Dropdown, self.tab, params)
+end
+function Tab.prototype.slider(self, params)
+    return __TS__New(____exports.Slider, self.tab, params)
+end
+function Tab.prototype.text(self, params)
+    self.tab:Text(params)
+end
+function Tab.prototype.cooldown(self, params)
+    return __TS__New(____exports.Cooldown, self.tab, params)
+end
+function Tab.prototype.defensive(self, params, unit)
+    return __TS__New(____exports.Defensive, self, params, unit)
+end
+function Tab.prototype.playerDefensive(self, params)
+    return __TS__New(____exports.PlayerDefensive, self, params)
+end
+function Tab.prototype.petDefensive(self, params)
+    return __TS__New(____exports.PetDefensive, self, params)
+end
+function Tab.prototype.interrupt(self, params)
+    return __TS__New(____exports.Interrupt, self.tab, params)
+end
+function Tab.prototype.separator(self)
+    __TS__New(____exports.Separator, self.tab)
+end
+function Tab.prototype.header(self, params)
+    __TS__New(____exports.Header, self.tab, params)
+end
+function Tab.prototype.delay(self, params)
+    return __TS__New(____exports.Delay, self, params)
+end
+____exports.Group = __TS__Class()
+local Group = ____exports.Group
+Group.name = "Group"
+function Group.prototype.____constructor(self, params)
+    self.group = gui:Group(params)
+end
+function Group.prototype.tab(self, name)
+    return __TS__New(____exports.Tab, name, self.group)
+end
+____exports.CooldownMode = CooldownMode or ({})
+____exports.CooldownMode.Always = 0
+____exports.CooldownMode[____exports.CooldownMode.Always] = "Always"
+____exports.CooldownMode.Toggle = 1
+____exports.CooldownMode[____exports.CooldownMode.Toggle] = "Toggle"
+____exports.CooldownMode.MiniToggle = 2
+____exports.CooldownMode[____exports.CooldownMode.MiniToggle] = "MiniToggle"
+____exports.CooldownMode.Never = 3
+____exports.CooldownMode[____exports.CooldownMode.Never] = "Never"
+____exports.RotationMode = RotationMode or ({})
+____exports.RotationMode.Auto = 0
+____exports.RotationMode[____exports.RotationMode.Auto] = "Auto"
+____exports.RotationMode.SingleTarget = 1
+____exports.RotationMode[____exports.RotationMode.SingleTarget] = "SingleTarget"
+____exports.cooldownOptions = {{label = "Always", value = ____exports.CooldownMode.Always, tooltip = "Always use."}, {label = "Toggle", value = ____exports.CooldownMode.Toggle, tooltip = "Use on cooldowns &/or mini cooldowns toggle."}, {label = "Mini Toggle", value = ____exports.CooldownMode.MiniToggle, tooltip = "Use on mini cooldowns toggle."}, {label = "Never", value = ____exports.CooldownMode.Never, tooltip = "Never use."}}
+____exports.Checkbox = __TS__Class()
+local Checkbox = ____exports.Checkbox
+Checkbox.name = "Checkbox"
+function Checkbox.prototype.____constructor(self, tab, params)
+    self.var = params.var
+    tab:Checkbox(params)
+end
+function Checkbox.prototype.enabled(self)
+    return settings[self.var]
+end
+function Checkbox.prototype.toggle(self)
+    settings[self.var] = not self:enabled()
+end
+____exports.Dropdown = __TS__Class()
+local Dropdown = ____exports.Dropdown
+Dropdown.name = "Dropdown"
+function Dropdown.prototype.____constructor(self, tab, params)
+    self.var = params.var
+    tab:Dropdown(params)
+end
+function Dropdown.prototype.value(self)
+    return settings[self.var]
+end
+function Dropdown.prototype.set(self, value)
+    settings[self.var] = value
+end
+____exports.Slider = __TS__Class()
+local Slider = ____exports.Slider
+Slider.name = "Slider"
+function Slider.prototype.____constructor(self, tab, params)
+    self.var = params.var
+    tab:Slider(params)
+end
+function Slider.prototype.value(self)
+    return settings[self.var]
+end
+function Slider.prototype.set(self, value)
+    settings[self.var] = value
+end
+____exports.Header = __TS__Class()
+local Header = ____exports.Header
+Header.name = "Header"
+function Header.prototype.____constructor(self, tab, params)
+    tab:Text(params)
+end
+____exports.Separator = __TS__Class()
+local Separator = ____exports.Separator
+Separator.name = "Separator"
+function Separator.prototype.____constructor(self, tab)
+    tab:Text({text = "----------------------------------------"})
+end
+____exports.Defensive = __TS__Class()
+local Defensive = ____exports.Defensive
+Defensive.name = "Defensive"
+function Defensive.prototype.____constructor(self, tab, params, unit)
+    self.checkbox = tab:checkbox({
+        var = params.var .. "State",
+        text = params.usable and (awful.textureEscape(params.usable.id, 20) .. " - ") .. params.usable.name or (params.checkboxText or "TO_REPLACE"),
+        tooltip = params.usable and ("Use " .. params.usable.name) .. " as a defensive." or params.checkboxTooltip,
+        default = params.default
+    })
+    self.slider = tab:slider({
+        var = params.var .. "Value",
+        text = "",
+        tooltip = params.usable and ("Minimum health to use " .. params.usable.name) .. " as a defensive." or params.sliderTooltip,
+        default = params.minHP,
+        min = 0,
+        max = 100,
+        step = 1
+    })
+    self.unit = function() return unit() end
+end
+function Defensive.prototype.usable(self)
+    return self.checkbox:enabled() and self:unit().hp <= self.slider:value()
+end
+____exports.PlayerDefensive = __TS__Class()
+local PlayerDefensive = ____exports.PlayerDefensive
+PlayerDefensive.name = "PlayerDefensive"
+__TS__ClassExtends(PlayerDefensive, ____exports.Defensive)
+function PlayerDefensive.prototype.____constructor(self, tab, params)
+    PlayerDefensive.____super.prototype.____constructor(
+        self,
+        tab,
+        params,
+        function() return awful.player end
+    )
+end
+____exports.PetDefensive = __TS__Class()
+local PetDefensive = ____exports.PetDefensive
+PetDefensive.name = "PetDefensive"
+__TS__ClassExtends(PetDefensive, ____exports.Defensive)
+function PetDefensive.prototype.____constructor(self, tab, params)
+    PetDefensive.____super.prototype.____constructor(
+        self,
+        tab,
+        params,
+        function() return awful.pet end
+    )
+end
+____exports.Delay = __TS__Class()
+local Delay = ____exports.Delay
+Delay.name = "Delay"
+function Delay.prototype.____constructor(self, tab, params)
+    self.delays = {}
+    self.minDelay = tab:slider({
+        var = params.var .. "Min",
+        text = params.text .. " min delay",
+        tooltip = "Minimum delay to " .. params.text,
+        min = 0,
+        max = 2,
+        default = 0.1,
+        valueType = "s",
+        step = 0.1
+    })
+    self.maxDelay = tab:slider({
+        var = params.var .. "Max",
+        text = params.text .. " max delay",
+        tooltip = "Maximum delay to " .. params.text,
+        min = 0,
+        max = 2,
+        default = 0.25,
+        valueType = "s",
+        step = 0.1
+    })
+end
+function Delay.prototype.delay(self)
+    local min = self.minDelay:value()
+    local max = self.maxDelay:value()
+    if not self.delays[min] then
+        self.delays[min] = {}
+    end
+    if not self.delays[min][max] then
+        self.delays[min][max] = awful.delay(min, max)
+    end
+    return self.delays[min][max].now
+end
+____exports.Cooldown = __TS__Class()
+local Cooldown = ____exports.Cooldown
+Cooldown.name = "Cooldown"
+__TS__ClassExtends(Cooldown, ____exports.Dropdown)
+function Cooldown.prototype.____constructor(self, tab, params)
+    Cooldown.____super.prototype.____constructor(
+        self,
+        tab,
+        {
+            var = params.var,
+            header = params.usable and (awful.textureEscape(params.usable.id, 20) .. " - ") .. params.usable.name or params.header,
+            options = ____exports.cooldownOptions,
+            tooltip = params.usable and params.usable.name .. " usage mode." or params.tooltip,
+            default = params.default or ____exports.CooldownMode.Toggle
+        }
+    )
+    self.traits = params.traits or ({})
+end
+function Cooldown.prototype.usable(self, traits)
+    local value = self:value()
+    local ____temp_2
+    if (traits and traits.ignoreTTD) ~= nil then
+        ____temp_2 = traits.ignoreTTD
+    else
+        ____temp_2 = self.traits.ignoreTTD
+    end
+    local ignoreTTD = ____temp_2
+    return (ignoreTTD or not settings[____exports.varSettings.minTTDVar] or awful.FightRemains() > settings[____exports.varSettings.minTTDValueVar]) and (value == ____exports.CooldownMode.Always or (value == ____exports.CooldownMode.Toggle or value == ____exports.CooldownMode.MiniToggle) and settings[____exports.varSettings.cdsToggleVar] or value == ____exports.CooldownMode.MiniToggle and settings[____exports.varSettings.mCdsToggleVar])
+end
+____exports.Interrupt = __TS__Class()
+local Interrupt = ____exports.Interrupt
+Interrupt.name = "Interrupt"
+__TS__ClassExtends(Interrupt, ____exports.Checkbox)
+function Interrupt.prototype.____constructor(self, tab, params)
+    Interrupt.____super.prototype.____constructor(
+        self,
+        tab,
+        {
+            var = params.var,
+            text = params.usable and (awful.textureEscape(params.usable.id, 20) .. " - ") .. params.usable.name or (params.text or "TO_REPLACE"),
+            tooltip = params.usable and ("Use  " .. params.usable.name) .. " to interrupt." or params.tooltip,
+            default = params.default
+        }
+    )
+end
+function Interrupt.prototype.usable(self)
+    return Interrupt.____super.prototype.enabled(self) and settings[____exports.varSettings.interruptsVar]
+end
+____exports.Trigger = __TS__Class()
+local Trigger = ____exports.Trigger
+Trigger.name = "Trigger"
+function Trigger.prototype.____constructor(self, disableDelay)
+    if disableDelay == nil then
+        disableDelay = 1.5
+    end
+    self.enable = false
+    self.timer = 0
+    self.delay = disableDelay
+    awful.addUpdateCallback(function() return self:update() end)
+end
+function Trigger.prototype.enabled(self)
+    return self.enable
+end
+function Trigger.prototype.disable(self)
+    self.enable = false
+end
+function Trigger.prototype.trigger(self)
+    self.timer = awful.time
+    self.enable = true
+end
+function Trigger.prototype.update(self)
+    if self.timer < awful.time - self.delay then
+        self.enable = false
+    end
+end
+____exports.Toggle = __TS__Class()
+local Toggle = ____exports.Toggle
+Toggle.name = "Toggle"
+function Toggle.prototype.____constructor(self, eVar, label)
+    self.var = eVar
+    statusFrame:Toggle({
+        label = label,
+        var = self.var,
+        onClick = function() return self:invert() end,
+        valueText = function() return self:valueText() end
+    })
+end
+function Toggle.prototype.valueText(self)
+    return self:enabled() and "|cff00ff00ON" or "|cffff0000OFF"
+end
+function Toggle.prototype.enabled(self)
+    return settings[self.var]
+end
+function Toggle.prototype.invert(self)
+    settings[self.var] = not self:enabled()
+end
+____exports.RotationModeSwitch = __TS__Class()
+local RotationModeSwitch = ____exports.RotationModeSwitch
+RotationModeSwitch.name = "RotationModeSwitch"
+function RotationModeSwitch.prototype.____constructor(self)
+    self.var = "rotationMode"
+    statusFrame:Toggle({
+        label = "Mode: ",
+        var = self.var,
+        valueText = function() return self:valueText() end,
+        onClick = function() return self:invert() end
+    })
+    if not __TS__ArrayIncludes(
+        __TS__ObjectValues(____exports.RotationMode),
+        settings[self.var]
+    ) then
+        settings[self.var] = ____exports.RotationMode.Auto
+    end
+end
+function RotationModeSwitch.prototype.valueText(self)
+    return "|cffbfff81" .. (self:value() == ____exports.RotationMode.Auto and "Auto" or "ST")
+end
+function RotationModeSwitch.prototype.invert(self)
+    if self:auto() then
+        settings[self.var] = ____exports.RotationMode.SingleTarget
+    else
+        settings[self.var] = ____exports.RotationMode.Auto
+    end
+end
+function RotationModeSwitch.prototype.value(self)
+    return settings[self.var]
+end
+function RotationModeSwitch.prototype.auto(self)
+    return self:value() == ____exports.RotationMode.Auto
+end
+function RotationModeSwitch.prototype.singleTarget(self)
+    return self:value() == ____exports.RotationMode.SingleTarget
+end
+____exports.CooldownsToggle = __TS__Class()
+local CooldownsToggle = ____exports.CooldownsToggle
+CooldownsToggle.name = "CooldownsToggle"
+__TS__ClassExtends(CooldownsToggle, ____exports.Toggle)
+function CooldownsToggle.prototype.____constructor(self, eVar, disableVar, disableValueVar, label)
+    CooldownsToggle.____super.prototype.____constructor(self, eVar, label)
+    self.lastCooldowns = 0
+    self.disableVar = disableVar
+    self.disableValueVar = disableValueVar
+    awful.addUpdateCallback(function() return self:update() end)
+end
+function CooldownsToggle.prototype.invert(self)
+    if not self:enabled() then
+        self.lastCooldowns = awful.time
+    end
+    CooldownsToggle.____super.prototype.invert(self)
+end
+function CooldownsToggle.prototype.update(self)
+    if self:enabled() and settings[self.disableVar] and awful.time - self.lastCooldowns > settings[self.disableValueVar] then
+        CooldownsToggle.____super.prototype.invert(self)
+    end
+end
+____exports.RotationToggle = __TS__Class()
+local RotationToggle = ____exports.RotationToggle
+RotationToggle.name = "RotationToggle"
+function RotationToggle.prototype.____constructor(self)
+    statusFrame:Toggle({
+        label = "Status: ",
+        var = "rotationToggle",
+        valueText = function() return self:valueText() end,
+        onClick = function() return self:invert() end
+    })
+end
+function RotationToggle.prototype.valueText(self)
+    return awful.enabled and "|cff00ff00ON" or "|cffff0000OFF"
+end
+function RotationToggle.prototype.invert(self)
+    awful.enabled = not awful.enabled
 end
 return ____exports
  end,
-["loader"] = function(...) 
+["core.ui"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__New = ____lualib.__TS__New
 local ____exports = {}
-local hunter = require("hunter.index")
-awful.ttd_enabled = true
-awful.DevMode = true
-hunter.load()
+local ____components = require("core.components")
+local CooldownsToggle = ____components.CooldownsToggle
+local RotationModeSwitch = ____components.RotationModeSwitch
+local RotationToggle = ____components.RotationToggle
+local Tab = ____components.Tab
+local Toggle = ____components.Toggle
+local varSettings = ____components.varSettings
+____exports.rotationToggle = __TS__New(RotationToggle)
+____exports.rotationMode = __TS__New(RotationModeSwitch)
+____exports.cooldownsToggle = __TS__New(
+    CooldownsToggle,
+    varSettings.cdsToggleVar,
+    varSettings.cdsDisableVar,
+    varSettings.cdsDisableValueVar,
+    "Cds: "
+)
+____exports.mCooldownsToggle = __TS__New(
+    CooldownsToggle,
+    varSettings.mCdsToggleVar,
+    varSettings.mCdsDisableVar,
+    varSettings.mCdsDisableValueVar,
+    "M.Cds: "
+)
+____exports.interrupts = __TS__New(Toggle, varSettings.interruptsVar, "Int: ")
+____exports.defensives = __TS__New(Toggle, varSettings.defensivesVar, "Def: ")
+____exports.generalTab = __TS__New(Tab, "General")
+____exports.generalTab:header({text = "Fight"})
+____exports.startCombat = ____exports.generalTab:checkbox({var = "startCombat", text = "Start Combat", tooltip = "Engage combat when the target is in range."})
+____exports.generalTab:separator()
+____exports.generalTab:header({text = "Targeting"})
+____exports.autoTarget = ____exports.generalTab:checkbox({var = "autoTarget", text = "Auto Target", tooltip = "Automatically swap to the best target when the current one dies."})
+____exports.cooldownsTab = __TS__New(Tab, "Cooldowns")
+____exports.cooldownsTab:header({text = "TTD Checker"})
+____exports.checkMinTTD = ____exports.cooldownsTab:checkbox({var = varSettings.minTTDVar, text = "Check for minimum TTD", tooltip = "Check for minimum TTD before using cooldowns.", default = false})
+____exports.minTTD = ____exports.cooldownsTab:slider({
+    var = varSettings.minTTDValueVar,
+    text = "Minimum TTD",
+    tooltip = "Minimum TTD to use cooldowns.",
+    min = 0,
+    max = 20,
+    default = 8,
+    valueType = "sec",
+    step = 1
+})
+____exports.cooldownsTab:separator()
+____exports.cooldownsTab:header({text = "Cooldowns Disabler"})
+____exports.cdsDisabler = ____exports.cooldownsTab:checkbox({var = varSettings.cdsDisableVar, text = "Disable Cooldowns", tooltip = "Disable cooldowns after a certain amount of time.", default = false})
+____exports.cdsDisablerValue = ____exports.cooldownsTab:slider({
+    var = varSettings.cdsDisableValueVar,
+    text = "Disable Cooldowns After",
+    tooltip = "Disable cooldowns after set amount of time.",
+    min = 0,
+    max = 20,
+    default = 6,
+    valueType = "sec",
+    step = 1
+})
+____exports.mCdsDisabler = ____exports.cooldownsTab:checkbox({var = varSettings.mCdsDisableVar, text = "Disable Mini Cooldowns", tooltip = "Disable mini cooldowns after a certain amount of time.", default = false})
+____exports.mCdsDisablerValue = ____exports.cooldownsTab:slider({
+    var = varSettings.mCdsDisableValueVar,
+    text = "Disable Mini Cooldowns After",
+    tooltip = "Disable mini cooldowns after set amount of time.",
+    min = 0,
+    max = 20,
+    default = 6,
+    valueType = "sec"
+})
+____exports.cooldownsTab:separator()
+____exports.interruptsTab = __TS__New(Tab, "Interrupts")
+____exports.interruptsTab:header({text = "Conditions"})
+____exports.whitelist = ____exports.interruptsTab:checkbox({var = "interruptWhitelist", text = "Whitelisted Only", tooltip = "Only interrupt spells on the whitelist.", default = false})
+____exports.focus = ____exports.interruptsTab:checkbox({var = "interruptFocus", text = "Focus Only", tooltip = "Only interrupt spells from the focus target."})
+____exports.minCastPercent = ____exports.interruptsTab:slider({
+    var = "minCastPercent",
+    text = "Min. cast %",
+    tooltip = "Interrupt spells when they are at least this % cast.",
+    min = 0,
+    max = 100,
+    default = 0,
+    valueType = "%",
+    step = 5
+})
+____exports.interruptDelay = ____exports.interruptsTab:delay({var = "interrupt", text = "Interrupt"})
+____exports.generalTab:separator()
+____exports.interruptsTab:header({text = "Spells"})
+____exports.defensivesTab = __TS__New(Tab, "Interrupts")
 return ____exports
  end,
 ["core.lists"] = function(...) 
@@ -899,17 +1384,28 @@ local stunChannelingData = {
     228200
 }
 local bypassThreatData = {197398, 195138, 194999}
+____exports.enemyBuffs = {
+    inspiringPresence = 343502,
+    sentinelsWatch = 215435,
+    iceShield = 372749,
+    iceBulwark = 372988,
+    overwhelmingEnergy = 384132,
+    primalBarrier = 374779
+}
+____exports.kickImmuneData = {____exports.enemyBuffs.sentinelsWatch, ____exports.enemyBuffs.iceShield, ____exports.enemyBuffs.iceBulwark}
+____exports.stunImmuneData = {____exports.enemyBuffs.inspiringPresence, ____exports.enemyBuffs.sentinelsWatch, ____exports.enemyBuffs.iceShield}
+____exports.damageImmuneData = {____exports.enemyBuffs.overwhelmingEnergy, ____exports.enemyBuffs.primalBarrier}
 ____exports.Dictionnary = __TS__Class()
 local Dictionnary = ____exports.Dictionnary
 Dictionnary.name = "Dictionnary"
 function Dictionnary.prototype.____constructor(self, list)
-    self._dictionary = {}
+    self.dictionary = {}
     for ____, key in ipairs(list) do
-        self._dictionary[key] = true
+        self.dictionary[key] = true
     end
 end
 function Dictionnary.prototype.has(self, key)
-    return self._dictionary[key]
+    return self.dictionary[key]
 end
 ____exports.unitBlacklist = __TS__New(____exports.Dictionnary, unitBlacklistData)
 ____exports.unitStunBlacklist = __TS__New(____exports.Dictionnary, unitStunBlacklistData)
@@ -920,815 +1416,250 @@ ____exports.stunCast = __TS__New(____exports.Dictionnary, stunCastData)
 ____exports.stunChanneled = __TS__New(____exports.Dictionnary, stunChanneledData)
 ____exports.stunChanneling = __TS__New(____exports.Dictionnary, stunChannelingData)
 ____exports.bypassThreat = __TS__New(____exports.Dictionnary, bypassThreatData)
-____exports.enemyBuffs = {inspiringPresence = 343502, sentinelsWatch = 215435, iceShield = 372749, iceBulwark = 372988}
 return ____exports
  end,
-["core.simc"] = function(...) 
+["core.utility"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__ArrayForEach = ____lualib.__TS__ArrayForEach
 local ____exports = {}
-____exports.fullRechargeTime = function(spell)
-    local currentCharges, maxCharges, cooldownStart, cooldownDuration = GetSpellCharges(spell.id)
-    if not currentCharges then
-        return 0
-    end
-    local currentChargeTime = (currentCharges or 0) < (maxCharges or 0) and cooldownDuration - (GetTime() - (cooldownStart or 0)) or 0
-    local leftChargesTotalTime = (maxCharges - currentCharges - 1) * cooldownDuration
-    if currentCharges ~= maxCharges then
-        return currentChargeTime + leftChargesTotalTime
-    end
-    return 0
+local ____lists = require("core.lists")
+local kickCast = ____lists.kickCast
+local kickChanneled = ____lists.kickChanneled
+local kickChanneling = ____lists.kickChanneling
+local stunCast = ____lists.stunCast
+local stunChanneled = ____lists.stunChanneled
+local stunChanneling = ____lists.stunChanneling
+local bypassThreat = ____lists.bypassThreat
+local damageImmuneData = ____lists.damageImmuneData
+local kickImmuneData = ____lists.kickImmuneData
+local stunImmuneData = ____lists.stunImmuneData
+local coreUI = require("core.ui")
+____exports.hasBuffFromList = function(enemy, buffs)
+    __TS__ArrayForEach(
+        buffs,
+        function(____, buff)
+            if enemy.buff(buff) ~= nil then
+                return true
+            end
+        end
+    )
+    return false
 end
-____exports.regenRate = function()
-    local ____, regenRate = awful.call("GetPowerRegen", awful.player.pointer)
-    return regenRate
-end
-____exports.timeToMax = function()
+____exports.isFightableUnit = function(unit)
     local player = awful.player
-    local maxPower = player.powerMax
-    local power = player.power
-    return maxPower == power and 0 or (maxPower - power) * (1 / ____exports.regenRate())
+    return unit.exists and not unit.dead and player.canAttack(unit) and unit.health > 2
 end
-____exports.executeTime = function(baseTime)
-    local haste = awful.call("UnitSpellHaste", awful.player.pointer)
-    return baseTime / (1 + haste / 100)
+____exports.canCombat = function() return ____exports.isFightableUnit(awful.target) end
+____exports.canStartCombat = function()
+    local player = awful.player
+    local target = awful.target
+    return player.combat or target.combat or coreUI.startCombat:enabled()
 end
-____exports.isRefreshable = function(unit, debuffId, duration)
-    local remains = unit.debuffRemains(debuffId, awful.player)
-    return remains <= (duration - remains) * 0.3
-end
-____exports.castRegen = function(spell, tooltip)
-    if tooltip == nil then
-        tooltip = 0
+____exports.isDamageImmune = function(enemy) return ____exports.hasBuffFromList(enemy, damageImmuneData) end
+____exports.isKickImmune = function(enemy) return ____exports.hasBuffFromList(enemy, kickImmuneData) end
+____exports.isStunImmune = function(enemy) return ____exports.hasBuffFromList(enemy, stunImmuneData) end
+____exports.isGroupTagged = function(unit)
+    if bypassThreat:has(unit.id) then
+        return true
     end
-    local regen = ____exports.regenRate()
-    local castTime = spell.castTime
-    if castTime == 0 or castTime < awful.gcd then
-        castTime = awful.gcd
-    end
-    return regen * castTime + tooltip
-end
-____exports.isRefreshableBuff = function(unit, buffId, duration)
-    local remains = unit.buffRemains(buffId)
-    return remains <= (duration - remains) * 0.3
-end
-return ____exports
- end,
-["core.enums.rotationMode"] = function(...) 
-local ____exports = {}
-local RotationMode = RotationMode or ({})
-RotationMode.auto = 0
-RotationMode[RotationMode.auto] = "auto"
-RotationMode.st = 1
-RotationMode[RotationMode.st] = "st"
-____exports.default = RotationMode
-return ____exports
- end,
-["core.ui.init"] = function(...) 
-local ____exports = {}
-local green = {170, 211, 114, 1}
-local white = {255, 255, 255, 1}
-local dark = {21, 21, 21, 0.45}
-____exports.projectTitle = "OpenPVE"
-____exports.projectCmd = "opve"
-local gui, settings, cmd = awful.UI:New(____exports.projectCmd, {title = ____exports.projectTitle, show = awful.DevMode, colors = {title = green, primary = white, accent = green, background = dark}})
-local statusFrame = gui:StatusFrame({fontSize = 6, maxWidth = 450, colors = {background = dark}})
-____exports.ui = {gui = gui, settings = settings, cmd = cmd, statusFrame = statusFrame}
-____exports.varSettings = {
-    minTTDVar = "minTTD",
-    minTTDValueVar = "minTTDValue",
-    cdsToggleVar = "cdsToggle",
-    cdsDisableVar = "cdsDisable",
-    cdsDisableValueVar = "cdsDisableValue",
-    mCdsToggleVar = "mCdsToggle",
-    mCdsDisableVar = "mCdsDisable",
-    mCdsDisableValueVar = "mCdsDisableValue",
-    interruptsVar = "interrupts",
-    defensivesVar = "defensives"
-}
-return ____exports
- end,
-["core.ui.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("core.ui.init")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
+    for ____, ally in ipairs(awful.fGroup) do
+        if awful.call("UnitThreatSituation", ally.pointer, unit.pointer) ~= nil then
+            return true
         end
     end
+    return false
 end
+____exports.canRun = function()
+    local player = awful.player
+    return player.exists and not player.dead and not player.mounted and not player.casting and not player.channeling and player.gcdRemains <= awful.buffer
+end
+____exports.canKickCast = function(enemy)
+    return enemy.casting ~= nil and enemy.castRemains >= awful.buffer and (enemy.castPct >= coreUI.minCastPercent:value() and enemy.castTimeComplete >= coreUI.interruptDelay:delay() or enemy.castRemains < awful.gcd + awful.buffer * 2) and (not coreUI.whitelist:enabled() and not enemy.casting8 or kickCast:has(enemy.castID))
+end
+____exports.canKickChannel = function(enemy)
+    local ____, ____, ____, ____, ____, ____, notInterruptible = awful.call("UnitChannelInfo", enemy.pointer)
+    return enemy.channeling ~= nil and enemy.channelRemains >= awful.buffer and (not coreUI.whitelist:enabled() and not notInterruptible or kickChanneling:has(enemy.channelID) and enemy.channelRemains > 1.5 or kickChanneled:has(enemy.channelID))
+end
+____exports.canKickEnemy = function(enemy)
+    return (not coreUI.focus:enabled() or enemy.isUnit(awful.focus)) and not ____exports.isKickImmune(enemy) and (____exports.canKickCast(enemy) or ____exports.canKickChannel(enemy))
+end
+____exports.canStunCast = function(enemy, delay)
+    return enemy.casting ~= nil and enemy.castRemains >= delay and (enemy.castPct >= coreUI.minCastPercent:value() and enemy.castTimeComplete >= coreUI.interruptDelay:delay() or enemy.castRemains < awful.gcd + awful.buffer * 2) and (not coreUI.whitelist:enabled() and not enemy.casting8 or stunCast:has(enemy.castID) or kickCast:has(enemy.castID))
+end
+____exports.canStunChannel = function(enemy, delay)
+    local ____, ____, ____, ____, ____, ____, notInterruptible = awful.call("UnitChannelInfo", enemy.pointer)
+    return enemy.channeling ~= nil and enemy.channelRemains >= delay and (not coreUI.whitelist:enabled() and not notInterruptible or (stunChanneling:has(enemy.channelID) or kickChanneling:has(enemy.channelID)) and enemy.channelRemains > 1 + delay or stunChanneled:has(enemy.channelID) or kickChanneled:has(enemy.channelID))
+end
+____exports.canStunEnemy = function(enemy, delay)
+    delay = (delay or 0) + awful.buffer
+    return (not coreUI.focus:enabled() or enemy.isUnit(awful.focus)) and not ____exports.isStunImmune(enemy) and (____exports.canStunCast(enemy, delay) or ____exports.canStunChannel(enemy, delay))
+end
+____exports.callSpells = function(spells) return __TS__ArrayForEach(
+    spells,
+    function(____, spell) return spell() end
+) end
 return ____exports
  end,
-["core.ui.statusFrame.toggle"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
+["core.rotation"] = function(...) 
 local ____exports = {}
-local ____init = require("core.ui.init")
-local ui = ____init.ui
-____exports.Toggle = __TS__Class()
-local Toggle = ____exports.Toggle
-Toggle.name = "Toggle"
-function Toggle.prototype.____constructor(self, eVar, label)
-    self._var = eVar
-    ui.statusFrame:Toggle({
-        label = label,
-        var = self._var,
-        onClick = function() return self:Invert() end,
-        valueText = function() return self:ValueText() end
-    })
-end
-function Toggle.prototype.ValueText(self)
-    return self:Enabled() and "|cff00ff00ON" or "|cffff0000OFF"
-end
-function Toggle.prototype.Enabled(self)
-    return ui.settings[self._var]
-end
-function Toggle.prototype.Invert(self)
-    ui.settings[self._var] = not self:Enabled()
-end
-return ____exports
- end,
-["core.ui.statusFrame.cooldownsToggle"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local __TS__ClassExtends = ____lualib.__TS__ClassExtends
-local ____exports = {}
-local ____init = require("core.ui.init")
-local ui = ____init.ui
-local ____toggle = require("core.ui.statusFrame.toggle")
-local Toggle = ____toggle.Toggle
-____exports.CooldownsToggle = __TS__Class()
-local CooldownsToggle = ____exports.CooldownsToggle
-CooldownsToggle.name = "CooldownsToggle"
-__TS__ClassExtends(CooldownsToggle, Toggle)
-function CooldownsToggle.prototype.____constructor(self, eVar, disableVar, disableValueVar, label)
-    Toggle.prototype.____constructor(self, eVar, label)
-    self._lastCooldowns = 0
-    self._disableVar = disableVar
-    self._disableValueVar = disableValueVar
-    awful.addUpdateCallback(function() return self:Update() end)
-end
-function CooldownsToggle.prototype.Invert(self)
-    if not self:Enabled() then
-        self._lastCooldowns = awful.time
+local coreUI = require("core.ui")
+local ____utility = require("core.utility")
+local canCombat = ____utility.canCombat
+____exports.selectNewTarget = function(getEnemies)
+    if not coreUI.autoTarget:enabled() or canCombat() then
+        return
     end
-    Toggle.prototype.Invert(self)
-end
-function CooldownsToggle.prototype.Update(self)
-    if self:Enabled() and ui.settings[self._disableVar] and awful.time - self._lastCooldowns > ui.settings[self._disableValueVar] then
-        Toggle.prototype.Invert(self)
-    end
-end
-return ____exports
- end,
-["core.ui.statusFrame.rotationModeSwitch"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local __TS__ObjectValues = ____lualib.__TS__ObjectValues
-local __TS__ArrayIncludes = ____lualib.__TS__ArrayIncludes
-local ____exports = {}
-local ____rotationMode = require("core.enums.rotationMode")
-local RotationMode = ____rotationMode.default
-local ____init = require("core.ui.init")
-local ui = ____init.ui
-____exports.RotationModeSwitch = __TS__Class()
-local RotationModeSwitch = ____exports.RotationModeSwitch
-RotationModeSwitch.name = "RotationModeSwitch"
-function RotationModeSwitch.prototype.____constructor(self)
-    self._var = "rotationMode"
-    ui.statusFrame:Toggle({
-        label = "Mode: ",
-        var = self._var,
-        valueText = function() return self:ValueText() end,
-        onClick = function() return self:Invert() end
-    })
-    if not __TS__ArrayIncludes(
-        __TS__ObjectValues(RotationMode),
-        ui.settings[self._var]
-    ) then
-        ui.settings[self._var] = RotationMode.auto
-    end
-end
-function RotationModeSwitch.prototype.ValueText(self)
-    return "|cffbfff81" .. (self:Value() == RotationMode.auto and "Auto" or "ST")
-end
-function RotationModeSwitch.prototype.Invert(self)
-    if self:Auto() then
-        ui.settings[self._var] = RotationMode.st
-    else
-        ui.settings[self._var] = RotationMode.auto
-    end
-end
-function RotationModeSwitch.prototype.Value(self)
-    return ui.settings[self._var]
-end
-function RotationModeSwitch.prototype.Auto(self)
-    return self:Value() == RotationMode.auto
-end
-function RotationModeSwitch.prototype.ST(self)
-    return self:Value() == RotationMode.st
-end
-return ____exports
- end,
-["core.ui.statusFrame.rotationToggle"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-local ____init = require("core.ui.init")
-local ui = ____init.ui
-____exports.RotationToggle = __TS__Class()
-local RotationToggle = ____exports.RotationToggle
-RotationToggle.name = "RotationToggle"
-function RotationToggle.prototype.____constructor(self)
-    ui.statusFrame:Toggle({
-        label = "Status: ",
-        var = "rotationToggle",
-        valueText = function() return self:ValueText() end,
-        onClick = function() return self:Invert() end
-    })
-end
-function RotationToggle.prototype.ValueText(self)
-    return awful.enabled and "|cff00ff00ON" or "|cffff0000OFF"
-end
-function RotationToggle.prototype.Invert(self)
-    awful.enabled = not awful.enabled
-end
-return ____exports
- end,
-["core.ui.statusFrame.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("core.ui.statusFrame.cooldownsToggle")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
+    local enemies = getEnemies()
+    local bestEnemy
+    enemies.loop(function(enemy)
+        if not bestEnemy or bestEnemy.health < enemy.health then
+            bestEnemy = enemy
         end
-    end
-end
-do
-    local ____export = require("core.ui.statusFrame.rotationModeSwitch")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.statusFrame.rotationToggle")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.statusFrame.toggle")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
+    end)
+    if bestEnemy then
+        bestEnemy.setTarget()
     end
 end
 return ____exports
  end,
-["core.ui.gui.widgets.checkbox"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-local _____2E_2E = require("core.ui.index")
-local ui = _____2E_2E.ui
-____exports.Checkbox = __TS__Class()
-local Checkbox = ____exports.Checkbox
-Checkbox.name = "Checkbox"
-function Checkbox.prototype.____constructor(self, tab, params)
-    self._var = params.var
-    tab:Checkbox(params)
-end
-function Checkbox.prototype.Enabled(self)
-    return ui.settings[self._var]
-end
-function Checkbox.prototype.Toggle(self)
-    ui.settings[self._var] = not self:Enabled()
-end
-return ____exports
- end,
-["core.ui.gui.widgets.dropdown"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-local _____2E_2E = require("core.ui.index")
-local ui = _____2E_2E.ui
-____exports.Dropdown = __TS__Class()
-local Dropdown = ____exports.Dropdown
-Dropdown.name = "Dropdown"
-function Dropdown.prototype.____constructor(self, tab, params)
-    self._var = params.var
-    tab:Dropdown(params)
-end
-function Dropdown.prototype.Value(self)
-    return ui.settings[self._var]
-end
-function Dropdown.prototype.Set(self, value)
-    ui.settings[self._var] = value
-end
-return ____exports
- end,
-["core.ui.gui.widgets.slider"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-local _____2E_2E = require("core.ui.index")
-local ui = _____2E_2E.ui
-____exports.Slider = __TS__Class()
-local Slider = ____exports.Slider
-Slider.name = "Slider"
-function Slider.prototype.____constructor(self, tab, params)
-    self._var = params.var
-    tab:Slider(params)
-end
-function Slider.prototype.Value(self)
-    return ui.settings[self._var]
-end
-function Slider.prototype.Set(self, value)
-    ui.settings[self._var] = value
-end
-return ____exports
- end,
-["core.ui.gui.widgets.modes.cooldownMode"] = function(...) 
-local ____exports = {}
-____exports.CooldownMode = CooldownMode or ({})
-____exports.CooldownMode.Always = 0
-____exports.CooldownMode[____exports.CooldownMode.Always] = "Always"
-____exports.CooldownMode.Toggle = 1
-____exports.CooldownMode[____exports.CooldownMode.Toggle] = "Toggle"
-____exports.CooldownMode.MiniToggle = 2
-____exports.CooldownMode[____exports.CooldownMode.MiniToggle] = "MiniToggle"
-____exports.CooldownMode.Never = 3
-____exports.CooldownMode[____exports.CooldownMode.Never] = "Never"
-return ____exports
- end,
-["core.ui.gui.widgets.modes.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("core.ui.gui.widgets.modes.cooldownMode")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-return ____exports
- end,
-["core.ui.gui.widgets.options.cooldownOptions"] = function(...) 
-local ____exports = {}
-local ____cooldownMode = require("core.ui.gui.widgets.modes.cooldownMode")
-local CooldownMode = ____cooldownMode.CooldownMode
-____exports.cooldownOptions = {{label = "Always", value = CooldownMode.Always, tooltip = "Always use."}, {label = "On Toggle", value = CooldownMode.Toggle, tooltip = "Use on cooldowns &/or mini cooldowns toggle."}, {label = "On Mini Toggle", value = CooldownMode.MiniToggle, tooltip = "Use on mini cooldowns toggle."}, {label = "Never", value = CooldownMode.Never, tooltip = "Never use."}}
-return ____exports
- end,
-["core.ui.gui.widgets.options.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("core.ui.gui.widgets.options.cooldownOptions")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-return ____exports
- end,
-["core.ui.gui.widgets.cooldown"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local __TS__ClassExtends = ____lualib.__TS__ClassExtends
-local ____exports = {}
-local _____2E_2E = require("core.ui.index")
-local ui = _____2E_2E.ui
-local varSettings = _____2E_2E.varSettings
-local ____dropdown = require("core.ui.gui.widgets.dropdown")
-local Dropdown = ____dropdown.Dropdown
-local ____modes = require("core.ui.gui.widgets.modes.index")
-local CooldownMode = ____modes.CooldownMode
-local ____options = require("core.ui.gui.widgets.options.index")
-local cooldownOptions = ____options.cooldownOptions
-____exports.Cooldown = __TS__Class()
-local Cooldown = ____exports.Cooldown
-Cooldown.name = "Cooldown"
-__TS__ClassExtends(Cooldown, Dropdown)
-function Cooldown.prototype.____constructor(self, tab, params)
-    Dropdown.prototype.____constructor(
-        self,
-        tab,
-        {
-            var = params.var,
-            header = params.usable and (awful.textureEscape(params.usable.id, 20) .. " - ") .. params.usable.name or params.header,
-            options = cooldownOptions,
-            tooltip = params.usable and params.usable.name .. " usage mode." or params.tooltip,
-            default = params.default or CooldownMode.Toggle
-        }
-    )
-end
-function Cooldown.prototype.Usable(self, ignoreTTD)
-    if ignoreTTD == nil then
-        ignoreTTD = false
-    end
-    local value = self:Value()
-    return (ignoreTTD or not ui.settings[varSettings.minTTDVar] or awful.FightRemains() > ui.settings[varSettings.minTTDValueVar]) and (value == CooldownMode.Always or (value == CooldownMode.Toggle or value == CooldownMode.MiniToggle) and ui.settings[varSettings.cdsToggleVar] or value == CooldownMode.MiniToggle and ui.settings[varSettings.mCdsToggleVar])
-end
-return ____exports
- end,
-["core.ui.gui.widgets.defensive"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-____exports.Defensive = __TS__Class()
-local Defensive = ____exports.Defensive
-Defensive.name = "Defensive"
-function Defensive.prototype.____constructor(self, tab, params)
-    self.checkbox = tab:Checkbox({
-        var = params.var .. "State",
-        text = params.usable and (awful.textureEscape(params.usable.id, 20) .. " - ") .. params.usable.name or (params.checkboxText or "TO_REPLACE"),
-        tooltip = params.usable and ("Use " .. params.usable.name) .. " as a defensive." or params.checkboxTooltip,
-        default = params.enabled
-    })
-    self.slider = tab:Slider({
-        var = params.var .. "Value",
-        text = "",
-        tooltip = params.usable and ("Minimum health to use " .. params.usable.name) .. " as a defensive." or params.sliderTooltip,
-        default = params.minHp,
-        min = 0,
-        max = 100,
-        step = 1
-    })
-end
-function Defensive.prototype.Usable(self)
-    return self.checkbox:Enabled() and awful.player.hp <= self.slider:Value()
-end
-return ____exports
- end,
-["core.ui.gui.widgets.delay"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-____exports.Delay = __TS__Class()
-local Delay = ____exports.Delay
-Delay.name = "Delay"
-function Delay.prototype.____constructor(self, tab, params)
-    self._delays = {}
-    self._minDelay = tab:Slider({
-        var = params.var .. "Min",
-        text = params.text .. " min delay",
-        tooltip = "Minimum delay to " .. params.text,
-        min = 0,
-        max = 2,
-        default = 0.1,
-        valueType = "s",
-        step = 0.1
-    })
-    self._maxDelay = tab:Slider({
-        var = params.var .. "Max",
-        text = params.text .. " max delay",
-        tooltip = "Maximum delay to " .. params.text,
-        min = 0,
-        max = 2,
-        default = 0.25,
-        valueType = "s",
-        step = 0.1
-    })
-end
-function Delay.prototype.Delay(self)
-    local min = self._minDelay:Value()
-    local max = self._maxDelay:Value()
-    if not self._delays[min] then
-        self._delays[min] = {}
-    end
-    if not self._delays[min][max] then
-        self._delays[min][max] = awful.delay(min, max)
-    end
-    return self._delays[min][max].now
-end
-return ____exports
- end,
-["core.ui.gui.widgets.header"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-____exports.Header = __TS__Class()
-local Header = ____exports.Header
-Header.name = "Header"
-function Header.prototype.____constructor(self, tab, params)
-    tab:Text(params)
-end
-return ____exports
- end,
-["core.ui.gui.widgets.interrupt"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local __TS__ClassExtends = ____lualib.__TS__ClassExtends
-local ____exports = {}
-local _____2E_2E = require("core.ui.index")
-local ui = _____2E_2E.ui
-local varSettings = _____2E_2E.varSettings
-local ____checkbox = require("core.ui.gui.widgets.checkbox")
-local Checkbox = ____checkbox.Checkbox
-____exports.Interrupt = __TS__Class()
-local Interrupt = ____exports.Interrupt
-Interrupt.name = "Interrupt"
-__TS__ClassExtends(Interrupt, Checkbox)
-function Interrupt.prototype.____constructor(self, tab, params)
-    Checkbox.prototype.____constructor(
-        self,
-        tab,
-        {
-            var = params.var,
-            text = params.usable and (awful.textureEscape(params.usable.id, 20) .. " - ") .. params.usable.name or (params.text or "TO_REPLACE"),
-            tooltip = params.usable and ("Use  " .. params.usable.name) .. " to interrupt." or params.tooltip,
-            default = params.default
-        }
-    )
-end
-function Interrupt.prototype.Usable(self)
-    return Checkbox.prototype.Enabled(self) and ui.settings[varSettings.interruptsVar]
-end
-return ____exports
- end,
-["core.ui.gui.widgets.separator"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-____exports.Separator = __TS__Class()
-local Separator = ____exports.Separator
-Separator.name = "Separator"
-function Separator.prototype.____constructor(self, tab)
-    tab:Text({text = "----------------------------------------"})
-end
-return ____exports
- end,
-["core.ui.gui.widgets.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("core.ui.gui.widgets.checkbox")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.dropdown")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.slider")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.cooldown")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.defensive")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.delay")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.header")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.interrupt")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-do
-    local ____export = require("core.ui.gui.widgets.separator")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-return ____exports
- end,
-["core.ui.gui.tab"] = function(...) 
+["core.cache"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__New = ____lualib.__TS__New
 local ____exports = {}
-local _____2E_2E = require("core.ui.index")
-local ui = _____2E_2E.ui
-local ____widgets = require("core.ui.gui.widgets.index")
-local Checkbox = ____widgets.Checkbox
-local Dropdown = ____widgets.Dropdown
-local Slider = ____widgets.Slider
-local Cooldown = ____widgets.Cooldown
-local Defensive = ____widgets.Defensive
-local Delay = ____widgets.Delay
-local Header = ____widgets.Header
-local Separator = ____widgets.Separator
-local Interrupt = ____widgets.Interrupt
-____exports.Tab = __TS__Class()
-local Tab = ____exports.Tab
-Tab.name = "Tab"
-function Tab.prototype.____constructor(self, name, group)
-    self._tab = group and group:Tab(name) or ui.gui:Tab(name)
+local ____lists = require("core.lists")
+local unitBlacklist = ____lists.unitBlacklist
+local ____utility = require("core.utility")
+local isDamageImmune = ____utility.isDamageImmune
+local isGroupTagged = ____utility.isGroupTagged
+local UnitCache = __TS__Class()
+UnitCache.name = "UnitCache"
+function UnitCache.prototype.____constructor(self)
+    awful.addUpdateCallback(function() return self:reset() end)
 end
-function Tab.prototype.Checkbox(self, params)
-    return __TS__New(Checkbox, self._tab, params)
+function UnitCache.prototype.reset(self)
+    self.cache = {}
 end
-function Tab.prototype.Dropdown(self, params)
-    return __TS__New(Dropdown, self._tab, params)
-end
-function Tab.prototype.Slider(self, params)
-    return __TS__New(Slider, self._tab, params)
-end
-function Tab.prototype.Text(self, params)
-    self._tab:Text(params)
-end
-function Tab.prototype.Cooldown(self, params)
-    return __TS__New(Cooldown, self._tab, params)
-end
-function Tab.prototype.Defensive(self, params)
-    return __TS__New(Defensive, self, params)
-end
-function Tab.prototype.Interrupt(self, params)
-    return __TS__New(Interrupt, self._tab, params)
-end
-function Tab.prototype.Separator(self)
-    __TS__New(Separator, self._tab)
-end
-function Tab.prototype.Header(self, params)
-    __TS__New(Header, self._tab, params)
-end
-function Tab.prototype.Delay(self, params)
-    return __TS__New(Delay, self, params)
-end
-return ____exports
- end,
-["core.ui.gui.group"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local __TS__New = ____lualib.__TS__New
-local ____exports = {}
-local _____2E_2E = require("core.ui.index")
-local ui = _____2E_2E.ui
-local ____tab = require("core.ui.gui.tab")
-local Tab = ____tab.Tab
-____exports.Group = __TS__Class()
-local Group = ____exports.Group
-Group.name = "Group"
-function Group.prototype.____constructor(self, params)
-    self._group = ui.gui:Group(params)
-end
-function Group.prototype.Tab(self, name)
-    return __TS__New(Tab, name, self._group)
-end
-return ____exports
- end,
-["core.ui.gui.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("core.ui.gui.group")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
+function UnitCache.prototype.dynamicFilter(self, options, unit)
+    if not awful.player.canAttack(unit) then
+        return false
     end
-end
-do
-    local ____export = require("core.ui.gui.tab")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
+    if unit.health <= 2 then
+        return false
     end
+    if options.distance ~= nil and unit.distance > options.distance then
+        return false
+    end
+    if options.distanceLiteral ~= nil and unit.distanceLiteral > options.distanceLiteral then
+        return false
+    end
+    if options.distanceFrom ~= nil and options.fromUnit ~= nil and unit.distanceTo(options.fromUnit) > options.distanceFrom then
+        return false
+    end
+    if options.distanceFromLiteral ~= nil and options.fromUnit ~= nil and unit.distanceToLiteral(options.fromUnit) > options.distanceFromLiteral then
+        return false
+    end
+    if options.meleeFrom ~= nil and options.fromUnit ~= nil and unit.meleeRangeOf(options.fromUnit) then
+        return false
+    end
+    if options.melee ~= nil and not unit.meleeRange then
+        return false
+    end
+    if options.alive ~= nil and unit.dead then
+        return false
+    end
+    if options.affectingCombat ~= nil and not isGroupTagged(unit) then
+        return false
+    end
+    if options.notCc ~= nil and unit.cc then
+        return false
+    end
+    if options.notBlacklisted ~= nil and unitBlacklist:has(unit.id) then
+        return false
+    end
+    if options.los ~= nil and not unit.los then
+        return false
+    end
+    if options.facing ~= nil and not unit.playerFacing then
+        return false
+    end
+    if options.facingPlayer ~= nil and not unit.facing(awful.player) then
+        return false
+    end
+    if options.immune ~= nil and isDamageImmune(unit) then
+        return false
+    end
+    return true
 end
+function UnitCache.prototype.getIndex(self, listKey, options)
+    local index = listKey
+    if options.melee ~= nil then
+        index = index .. "melee"
+    end
+    if options.distance ~= nil then
+        index = index .. "distance" .. tostring(options.distance)
+    end
+    if options.distanceLiteral ~= nil then
+        index = index .. "distanceLiteral" .. tostring(options.distanceLiteral)
+    end
+    if options.fromUnit ~= nil then
+        index = index .. options.fromUnit.guid
+    end
+    if options.meleeFrom ~= nil then
+        index = index .. "meleeFrom"
+    end
+    if options.distanceFrom ~= nil then
+        index = index .. "distanceFrom" .. tostring(options.distanceFrom)
+    end
+    if options.distanceFromLiteral ~= nil then
+        index = index .. "distanceFromLiteral" .. tostring(options.distanceFromLiteral)
+    end
+    if options.alive ~= nil then
+        index = index .. "alive"
+    end
+    if options.affectingCombat ~= nil then
+        index = index .. "affectingCombat"
+    end
+    if options.notCc ~= nil then
+        index = index .. "notCc"
+    end
+    if options.notBlacklisted ~= nil then
+        index = index .. "notBlacklisted"
+    end
+    if options.los ~= nil then
+        index = index .. "los"
+    end
+    if options.facing ~= nil then
+        index = index .. "facing"
+    end
+    if options.facingPlayer ~= nil then
+        index = index .. "facingPlayer"
+    end
+    if options.immune ~= nil then
+        index = index .. "immune"
+    end
+    return index
+end
+function UnitCache.prototype.get(self, list, listKey, options)
+    local index = self:getIndex(listKey, options)
+    if self.cache[index] ~= nil then
+        return self.cache[index]
+    end
+    local units = list.filter(function(unit) return self:dynamicFilter(options, unit) end)
+    self.cache[index] = units
+    return units
+end
+function UnitCache.prototype.getUnits(self, options)
+    return self:get(awful.units, "units", options)
+end
+function UnitCache.prototype.getEnemies(self, options)
+    return self:get(awful.enemies, "enemies", options)
+end
+function UnitCache.prototype.getExplosives(self, options)
+    return self:get(awful.explosives, "explosives", options)
+end
+____exports.coreCache = __TS__New(UnitCache)
 return ____exports
- end,
-["core.ui.loader"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__New = ____lualib.__TS__New
-local ____exports = {}
-local _____2E = require("core.ui.index")
-local varSettings = _____2E.varSettings
-local ____statusFrame = require("core.ui.statusFrame.index")
-local CooldownsToggle = ____statusFrame.CooldownsToggle
-local RotationModeSwitch = ____statusFrame.RotationModeSwitch
-local RotationToggle = ____statusFrame.RotationToggle
-local Toggle = ____statusFrame.Toggle
-local ____gui = require("core.ui.gui.index")
-local Tab = ____gui.Tab
-____exports.rotationToggle = __TS__New(RotationToggle)
-____exports.rotationMode = __TS__New(RotationModeSwitch)
-____exports.cooldownsToggle = __TS__New(
-    CooldownsToggle,
-    varSettings.cdsToggleVar,
-    varSettings.cdsDisableVar,
-    varSettings.cdsDisableValueVar,
-    "Cds: "
-)
-____exports.mCooldownsToggle = __TS__New(
-    CooldownsToggle,
-    varSettings.mCdsToggleVar,
-    varSettings.mCdsDisableVar,
-    varSettings.mCdsDisableValueVar,
-    "M.Cds: "
-)
-____exports.interrupts = __TS__New(Toggle, varSettings.interruptsVar, "Int: ")
-____exports.generalTab = __TS__New(Tab, "General")
-____exports.generalTab:Header({text = "Fight"})
-____exports.startCombat = ____exports.generalTab:Checkbox({var = "startCombat", text = "Start Combat", tooltip = "Engage combat when the target is in range."})
-____exports.generalTab:Separator()
-____exports.generalTab:Header({text = "Targeting"})
-____exports.autoTarget = ____exports.generalTab:Checkbox({var = "autoTarget", text = "Auto Target", tooltip = "Automatically swap to the best target when the current one dies."})
-____exports.cooldownsTab = __TS__New(Tab, "Cooldowns")
-____exports.cooldownsTab:Header({text = "TTD Checker"})
-____exports.checkMinTTD = ____exports.cooldownsTab:Checkbox({var = varSettings.minTTDVar, text = "Check for minimum TTD", tooltip = "Check for minimum TTD before using cooldowns.", default = false})
-____exports.minTTD = ____exports.cooldownsTab:Slider({
-    var = varSettings.minTTDValueVar,
-    text = "Minimum TTD",
-    tooltip = "Minimum TTD to use cooldowns.",
-    min = 0,
-    max = 20,
-    default = 8,
-    valueType = "sec",
-    step = 1
-})
-____exports.cooldownsTab:Separator()
-____exports.cooldownsTab:Header({text = "Cooldowns Disabler"})
-____exports.cdsDisabler = ____exports.cooldownsTab:Checkbox({var = varSettings.cdsDisableVar, text = "Disable Cooldowns", tooltip = "Disable cooldowns after a certain amount of time.", default = false})
-____exports.cdsDisablerValue = ____exports.cooldownsTab:Slider({
-    var = varSettings.cdsDisableValueVar,
-    text = "Disable Cooldowns After",
-    tooltip = "Disable cooldowns after set amount of time.",
-    min = 0,
-    max = 20,
-    default = 6,
-    valueType = "sec",
-    step = 1
-})
-____exports.mCdsDisabler = ____exports.cooldownsTab:Checkbox({var = varSettings.mCdsDisableVar, text = "Disable Mini Cooldowns", tooltip = "Disable mini cooldowns after a certain amount of time.", default = false})
-____exports.mCdsDisablerValue = ____exports.cooldownsTab:Slider({
-    var = varSettings.mCdsDisableValueVar,
-    text = "Disable Mini Cooldowns After",
-    tooltip = "Disable mini cooldowns after set amount of time.",
-    min = 0,
-    max = 20,
-    default = 6,
-    valueType = "sec"
-})
-____exports.cooldownsTab:Separator()
-____exports.interruptsTab = __TS__New(Tab, "Interrupts")
-____exports.interruptsTab:Header({text = "Conditions"})
-____exports.whitelist = ____exports.interruptsTab:Checkbox({var = "interruptWhitelist", text = "Whitelisted Only", tooltip = "Only interrupt spells on the whitelist.", default = false})
-____exports.focus = ____exports.interruptsTab:Checkbox({var = "interruptFocus", text = "Focus Only", tooltip = "Only interrupt spells from the focus target."})
-____exports.minCastPercent = ____exports.interruptsTab:Slider({
-    var = "minCastPercent",
-    text = "Min. cast %",
-    tooltip = "Interrupt spells when they are at least this % cast.",
-    min = 0,
-    max = 100,
-    default = 0,
-    valueType = "%",
-    step = 5
-})
-____exports.interruptDelay = ____exports.interruptsTab:Delay({var = "interrupt", text = "Interrupt"})
-____exports.generalTab:Separator()
-____exports.interruptsTab:Header({text = "Spells"})
-____exports.defensivesTab = __TS__New(Tab, "Defensives")
-return ____exports
- end,
-["hunter.callbacks"] = function(...) 
  end,
 ["hunter.lists"] = function(...) 
 local ____exports = {}
@@ -1799,8 +1730,6 @@ ____exports.hunterTalents = {
 }
 return ____exports
  end,
-["hunter.rotation"] = function(...) 
- end,
 ["hunter.spells"] = function(...) 
 local ____exports = {}
 local newSpell = awful.NewSpell
@@ -1830,7 +1759,7 @@ ____exports.flare = newSpell(1543, {ranged = true, radius = 10, targeted = false
 ____exports.bindingShot = newSpell(109248, {ranged = true, radius = 5, targeted = false})
 ____exports.huntersMark = newSpell(257284, {targeted = true, ranged = true})
 ____exports.tranquilizingShot = newSpell(19801, {targeted = true, ranged = true})
-____exports.intimidation = newSpell(19577, {targeted = true, ranged = true, ignoreFacing = true})
+____exports.intimidation = newSpell(19577, {targeted = true, cc = "stun", ranged = true, ignoreFacing = true})
 ____exports.feignDeath = newSpell(5384, {targeted = false})
 ____exports.misdirection = newSpell(34477, {targeted = true, ranged = true, ignoreFacing = true})
 ____exports.disengage = newSpell(781, {targeted = false})
@@ -1854,8 +1783,82 @@ ____exports.berserking = awful.NewSpell(26297, {targeted = false})
 ____exports.arcaneTorrent = awful.NewSpell(25046, {targeted = false})
 return ____exports
  end,
-["hunter.ui.gui.widgets.modes.misdirectionMode"] = function(...) 
+["hunter.utility"] = function(...) 
 local ____exports = {}
+local ____cache = require("core.cache")
+local coreCache = ____cache.coreCache
+local ____lists = require("hunter.lists")
+local petBuffs = ____lists.petBuffs
+local hunterSpells = require("hunter.spells")
+____exports.modeParams = {
+    distanceFrom = 8,
+    alive = true,
+    notCc = true,
+    notBlacklisted = true,
+    immune = true
+}
+local function isValidUnitForModeParams(unit)
+    return unit.exists and not unit.dead
+end
+awful.addUpdateCallback(function()
+    local target = awful.target
+    if isValidUnitForModeParams(target) then
+        ____exports.modeParams.fromUnit = awful.target
+    else
+        ____exports.modeParams.fromUnit = awful.player
+    end
+end)
+____exports.modeUnits = function() return coreCache:getUnits(____exports.modeParams) end
+____exports.fourthyFightableLosFacingParams = {
+    distance = 40,
+    alive = true,
+    affectingCombat = true,
+    notCc = true,
+    notBlacklisted = true,
+    los = true,
+    facing = true,
+    immune = true
+}
+____exports.fourthyFightableLosFacingUnits = function() return coreCache:getUnits(____exports.fourthyFightableLosFacingParams) end
+____exports.petAlive = function()
+    local pet = awful.pet
+    return pet.exists and not pet.dead
+end
+____exports.fourthyEngagedLosFacingParams = {
+    distance = 40,
+    alive = true,
+    affectingCombat = true,
+    notCc = true,
+    los = true,
+    facing = true
+}
+____exports.fourthyEngagedLosFacingUnits = function() return coreCache:getUnits(____exports.fourthyEngagedLosFacingParams) end
+____exports.fourthyEngagedLosParams = {
+    distance = 40,
+    alive = true,
+    affectingCombat = true,
+    notCc = true,
+    los = true
+}
+____exports.fourthyEngagedLosUnits = function() return coreCache:getUnits(____exports.fourthyEngagedLosParams) end
+____exports.waitForBarbedShot = function()
+    local pet = awful.pet
+    return ____exports.petAlive() and pet.buff(petBuffs.frenzy) ~= nil and pet.buffRemains(petBuffs.frenzy) <= awful.gcd + awful.buffer * 2 and pet.buffRemains(petBuffs.frenzy) >= hunterSpells.barbedShot.cd + awful.buffer
+end
+____exports.petStatus = {triedPetCall = false}
+____exports.disengageForwardInfos = {inverseTime = 0, playerRotation = nil}
+return ____exports
+ end,
+["hunter.components"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__ClassExtends = ____lualib.__TS__ClassExtends
+local ____exports = {}
+local ____components = require("core.components")
+local Dropdown = ____components.Dropdown
+local awfulUI = ____components.awfulUI
+local coreUI = require("core.ui")
+local spells = require("hunter.spells")
 ____exports.MisdirectionMode = MisdirectionMode or ({})
 ____exports.MisdirectionMode.Smart = 0
 ____exports.MisdirectionMode[____exports.MisdirectionMode.Smart] = "Smart"
@@ -1867,59 +1870,13 @@ ____exports.MisdirectionMode.Always = 3
 ____exports.MisdirectionMode[____exports.MisdirectionMode.Always] = "Always"
 ____exports.MisdirectionMode.Never = 4
 ____exports.MisdirectionMode[____exports.MisdirectionMode.Never] = "Never"
-return ____exports
- end,
-["hunter.ui.gui.widgets.modes.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("hunter.ui.gui.widgets.modes.misdirectionMode")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-return ____exports
- end,
-["hunter.ui.gui.widgets.options.misdirectionOptions"] = function(...) 
-local ____exports = {}
-local ____modes = require("hunter.ui.gui.widgets.modes.index")
-local MisdirectionMode = ____modes.MisdirectionMode
 ____exports.misdirectionOptions = {
-    {label = "Smart", value = MisdirectionMode.Smart, tooltip = "Use on engage and when taking aggro"},
-    {label = "Engage", value = MisdirectionMode.Engage, tooltip = "Use on combat start."},
-    {label = "Aggro", value = MisdirectionMode.Aggro, tooltip = "Use when taking aggro of a mob."},
-    {label = "Always", value = MisdirectionMode.Always, tooltip = "Always use on cooldown."},
-    {label = "Never", value = MisdirectionMode.Never, tooltip = "Never use."}
+    {label = "Smart", value = ____exports.MisdirectionMode.Smart, tooltip = "Use on engage and when taking aggro"},
+    {label = "Engage", value = ____exports.MisdirectionMode.Engage, tooltip = "Use on combat start."},
+    {label = "Aggro", value = ____exports.MisdirectionMode.Aggro, tooltip = "Use when taking aggro of a mob."},
+    {label = "Always", value = ____exports.MisdirectionMode.Always, tooltip = "Use on cooldown."},
+    {label = "Never", value = ____exports.MisdirectionMode.Never, tooltip = "Never use."}
 }
-return ____exports
- end,
-["hunter.ui.gui.widgets.options.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("hunter.ui.gui.widgets.options.misdirectionOptions")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-return ____exports
- end,
-["hunter.ui.gui.widgets.misdirectionModeSelector"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local __TS__ClassExtends = ____lualib.__TS__ClassExtends
-local ____exports = {}
-local ____widgets = require("core.ui.gui.widgets.index")
-local Dropdown = ____widgets.Dropdown
-local ____loader = require("core.ui.loader")
-local generalTab = ____loader.generalTab
-local spells = require("hunter.spells")
-local ____modes = require("hunter.ui.gui.widgets.modes.index")
-local MisdirectionMode = ____modes.MisdirectionMode
-local ____options = require("hunter.ui.gui.widgets.options.index")
-local misdirectionOptions = ____options.misdirectionOptions
 ____exports.MisdirectionModeSelector = __TS__Class()
 local MisdirectionModeSelector = ____exports.MisdirectionModeSelector
 MisdirectionModeSelector.name = "MisdirectionModeSelector"
@@ -1928,112 +1885,79 @@ function MisdirectionModeSelector.prototype.____constructor(self)
     local name = spells.misdirection.name
     Dropdown.prototype.____constructor(
         self,
-        generalTab,
+        coreUI.generalTab.tab,
         {
             var = "missdirectionModdes",
-            options = misdirectionOptions,
+            options = ____exports.misdirectionOptions,
             header = (awful.textureEscape(spells.misdirection.id, 20) .. " - ") .. name,
             tooltip = name .. " usage mode.",
-            default = MisdirectionMode.Smart
+            default = ____exports.MisdirectionMode.Smart
         }
     )
 end
-function MisdirectionModeSelector.prototype.OnEngage(self)
-    return self:Value() == MisdirectionMode.Smart or self:Value() == MisdirectionMode.Engage
+function MisdirectionModeSelector.prototype.engage(self)
+    return self:value() == ____exports.MisdirectionMode.Smart or self:value() == ____exports.MisdirectionMode.Engage
 end
-function MisdirectionModeSelector.prototype.OnAggro(self)
-    return self:Value() == MisdirectionMode.Smart or self:Value() == MisdirectionMode.Aggro
+function MisdirectionModeSelector.prototype.aggro(self)
+    return self:value() == ____exports.MisdirectionMode.Smart or self:value() == ____exports.MisdirectionMode.Aggro
 end
-function MisdirectionModeSelector.prototype.Always(self)
-    return self:Value() == MisdirectionMode.Always
+function MisdirectionModeSelector.prototype.always(self)
+    return self:value() == ____exports.MisdirectionMode.Always
 end
-return ____exports
- end,
-["hunter.ui.gui.widgets.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("hunter.ui.gui.widgets.misdirectionModeSelector")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-return ____exports
- end,
-["hunter.ui.statusFrame.petSlotSelector"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local ____exports = {}
-local ____ui = require("core.ui.index")
-local ui = ____ui.ui
 ____exports.PetSlotSelector = __TS__Class()
 local PetSlotSelector = ____exports.PetSlotSelector
 PetSlotSelector.name = "PetSlotSelector"
 function PetSlotSelector.prototype.____constructor(self)
-    self._var = "petSlot"
-    ui.statusFrame:Toggle({
+    self.var = "petSlot"
+    awfulUI.statusFrame:Toggle({
         label = "Pet: ",
-        var = self._var,
-        onClick = function() return self:Press() end,
-        valueText = function() return self:ValueText() end
+        var = self.var,
+        onClick = function() return self:press() end,
+        valueText = function() return self:valueText() end
     })
-    if not self:Value() then
-        ui.settings[self._var] = 1
+    if self:value() == nil then
+        awfulUI.settings[self.var] = 1
     end
 end
-function PetSlotSelector.prototype.ValueText(self)
-    return "|cffbfff81" .. tostring(self:Value())
+function PetSlotSelector.prototype.valueText(self)
+    return "|cffbfff81" .. tostring(self:value())
 end
-function PetSlotSelector.prototype.Press(self)
-    self:Set(self:Value() + 1)
-    if self:Value() > 5 then
-        self:Set(0)
+function PetSlotSelector.prototype.press(self)
+    self:set(self:value() + 1)
+    if self:value() > 5 then
+        self:set(0)
     end
 end
-function PetSlotSelector.prototype.Set(self, value)
-    ui.settings[self._var] = value
+function PetSlotSelector.prototype.set(self, value)
+    awfulUI.settings[self.var] = value
 end
-function PetSlotSelector.prototype.Value(self)
-    return ui.settings[self._var]
+function PetSlotSelector.prototype.value(self)
+    return awfulUI.settings[self.var]
 end
-function PetSlotSelector.prototype.Enabled(self)
-    return self:Value() ~= 0
+function PetSlotSelector.prototype.enabled(self)
+    return self:value() ~= 0
 end
-function PetSlotSelector.prototype.Disabled(self)
-    return self:Value() == 0
+function PetSlotSelector.prototype.disabled(self)
+    return self:value() == 0
 end
 return ____exports
  end,
-["hunter.ui.statusFrame.index"] = function(...) 
-local ____exports = {}
-do
-    local ____export = require("hunter.ui.statusFrame.petSlotSelector")
-    for ____exportKey, ____exportValue in pairs(____export) do
-        if ____exportKey ~= "default" then
-            ____exports[____exportKey] = ____exportValue
-        end
-    end
-end
-return ____exports
- end,
-["hunter.ui.loader"] = function(...) 
+["hunter.ui"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__New = ____lualib.__TS__New
 local ____exports = {}
-local ____modes = require("core.ui.gui.widgets.modes.index")
-local CooldownMode = ____modes.CooldownMode
-local ____loader = require("core.ui.loader")
-local cooldownsTab = ____loader.cooldownsTab
-local generalTab = ____loader.generalTab
-local interruptsTab = ____loader.interruptsTab
-local spells = require("hunter.spells")
-local ____widgets = require("hunter.ui.gui.widgets.index")
-local MisdirectionModeSelector = ____widgets.MisdirectionModeSelector
-local ____statusFrame = require("hunter.ui.statusFrame.index")
-local PetSlotSelector = ____statusFrame.PetSlotSelector
+local ____components = require("core.components")
+local CooldownMode = ____components.CooldownMode
+local Tab = ____components.Tab
+local Trigger = ____components.Trigger
+local awfulUI = ____components.awfulUI
+local coreUI = require("core.ui")
+local ____components = require("hunter.components")
+local MisdirectionModeSelector = ____components.MisdirectionModeSelector
+local PetSlotSelector = ____components.PetSlotSelector
+local hunterSpells = require("hunter.spells")
 ____exports.misdirectionMode = __TS__New(MisdirectionModeSelector)
-____exports.maxSerpentSting = generalTab:Slider({
+____exports.maxSerpentSting = coreUI.generalTab:slider({
     var = "maxSerpentSting",
     text = "Max Serpent Sting",
     tooltip = "Maximum number of Serpent Sting active.",
@@ -2043,21 +1967,739 @@ ____exports.maxSerpentSting = generalTab:Slider({
     step = 1
 })
 ____exports.petSlot = __TS__New(PetSlotSelector)
-____exports.aMurderofCrows = cooldownsTab:Cooldown({var = "aMurderofCrows", usable = spells.aMurderofCrows, default = CooldownMode.Always})
-____exports.aspectOfTheWild = cooldownsTab:Cooldown({var = "aspectOfTheWild", usable = spells.aspectOfTheWild, default = CooldownMode.Toggle})
-____exports.barrage = cooldownsTab:Cooldown({var = "barrage", usable = spells.barrage, default = CooldownMode.Always})
-____exports.deathChakram = cooldownsTab:Cooldown({var = "deathChakram", usable = spells.deathChakram, default = CooldownMode.Always})
-____exports.explosiveShot = cooldownsTab:Cooldown({var = "explosiveShot", usable = spells.explosiveShot, default = CooldownMode.Always})
-____exports.stampede = cooldownsTab:Cooldown({var = "stampede", usable = spells.stampede, default = CooldownMode.Toggle})
-____exports.steelTrap = cooldownsTab:Cooldown({var = "steelTrap", usable = spells.steelTrap, default = CooldownMode.Always})
-____exports.wailingArrow = cooldownsTab:Cooldown({var = "wailingArrow", usable = spells.wailingArrow, default = CooldownMode.Always})
-____exports.bestialWrath = cooldownsTab:Cooldown({var = "bestialWrath", usable = spells.bestialWrath, default = CooldownMode.MiniToggle})
-____exports.bloodshed = cooldownsTab:Cooldown({var = "bloodshed", usable = spells.bloodshed, default = CooldownMode.Always})
-____exports.callOfTheWild = cooldownsTab:Cooldown({var = "callOfTheWild", usable = spells.callOfTheWild, default = CooldownMode.Toggle})
-____exports.direBeast = cooldownsTab:Cooldown({var = "direBeast", usable = spells.direBeast, default = CooldownMode.Always})
-____exports.counterShot = interruptsTab:Interrupt({var = "counterShot", usable = spells.counterShot, default = true})
-____exports.freezingTrap = interruptsTab:Interrupt({var = "freezingTrap", usable = spells.freezingTrap, default = true})
-____exports.intimidation = interruptsTab:Interrupt({var = "intimidation", usable = spells.intimidation, default = true})
+____exports.aMurderofCrows = coreUI.cooldownsTab:cooldown({var = "aMurderofCrows", usable = hunterSpells.aMurderofCrows, default = CooldownMode.Always})
+____exports.aspectOfTheWild = coreUI.cooldownsTab:cooldown({var = "aspectOfTheWild", usable = hunterSpells.aspectOfTheWild, default = CooldownMode.Toggle})
+____exports.barrage = coreUI.cooldownsTab:cooldown({var = "barrage", usable = hunterSpells.barrage, default = CooldownMode.Always})
+____exports.deathChakram = coreUI.cooldownsTab:cooldown({var = "deathChakram", usable = hunterSpells.deathChakram, default = CooldownMode.Always})
+____exports.explosiveShot = coreUI.cooldownsTab:cooldown({var = "explosiveShot", usable = hunterSpells.explosiveShot, default = CooldownMode.Always})
+____exports.stampede = coreUI.cooldownsTab:cooldown({var = "stampede", usable = hunterSpells.stampede, default = CooldownMode.Toggle})
+____exports.steelTrap = coreUI.cooldownsTab:cooldown({var = "steelTrap", usable = hunterSpells.steelTrap, default = CooldownMode.Always})
+____exports.wailingArrow = coreUI.cooldownsTab:cooldown({var = "wailingArrow", usable = hunterSpells.wailingArrow, default = CooldownMode.Always})
+____exports.bestialWrath = coreUI.cooldownsTab:cooldown({var = "bestialWrath", usable = hunterSpells.bestialWrath, default = CooldownMode.MiniToggle})
+____exports.bloodshed = coreUI.cooldownsTab:cooldown({var = "bloodshed", usable = hunterSpells.bloodshed, default = CooldownMode.Always})
+____exports.callOfTheWild = coreUI.cooldownsTab:cooldown({var = "callOfTheWild", usable = hunterSpells.callOfTheWild, default = CooldownMode.Toggle})
+____exports.direBeast = coreUI.cooldownsTab:cooldown({var = "direBeast", usable = hunterSpells.direBeast, default = CooldownMode.Always})
+____exports.counterShot = coreUI.interruptsTab:interrupt({var = "counterShot", usable = hunterSpells.counterShot, default = true})
+____exports.freezingTrap = coreUI.interruptsTab:interrupt({var = "freezingTrap", usable = hunterSpells.freezingTrap, default = true})
+____exports.intimidation = coreUI.interruptsTab:interrupt({var = "intimidation", usable = hunterSpells.intimidation, default = true})
+____exports.exhilaration = coreUI.defensivesTab:playerDefensive({var = "exhilaration", usable = hunterSpells.exhilaration, minHP = 50, default = true})
+____exports.aspectOfTheTurtle = coreUI.defensivesTab:playerDefensive({var = "aspectOfTheTurtle", usable = hunterSpells.aspectOfTheTurtle, minHP = 25, default = false})
+____exports.feignDeath = coreUI.defensivesTab:playerDefensive({var = "feignDeath", usable = hunterSpells.feignDeath, minHP = 20, default = false})
+____exports.petTab = __TS__New(Tab, "Pet")
+____exports.summonRevivePet = ____exports.petTab:checkbox({var = "summonRevivePet", text = "Summon/Revive Pet", tooltip = "Automatically summon or revive your pet.", default = true})
+____exports.mendPet = ____exports.petTab:petDefensive({var = "mendPet", usable = hunterSpells.mendRevivePet, minHP = 40})
+____exports.disengageTrigger = __TS__New(Trigger)
+awfulUI.cmd:New(function(msg)
+    repeat
+        local ____switch3 = msg
+        local ____cond3 = ____switch3 == "forward"
+        if ____cond3 then
+            ____exports.disengageTrigger:trigger()
+            break
+        end
+        do
+            break
+        end
+    until true
+end)
+return ____exports
+ end,
+["hunter.rotation"] = function(...) 
+local ____exports = {}
+local hunterUI = require("hunter.ui")
+local ____utility = require("hunter.utility")
+local disengageForwardInfos = ____utility.disengageForwardInfos
+local petStatus = ____utility.petStatus
+local hunterSpells = require("hunter.spells")
+local ____utility = require("core.utility")
+local callSpells = ____utility.callSpells
+local function callPet()
+    local pet = awful.pet
+    if hunterUI.petSlot:disabled() or not hunterUI.summonRevivePet:enabled() or pet.exists or petStatus.triedPetCall then
+        return
+    end
+    hunterSpells["callPet" .. tostring(hunterStatusFrame.hunterPet:value())](hunterSpells)
+end
+____exports.petManager = function()
+    hunterSpells.mendRevivePet("revive")
+    callPet()
+    hunterSpells.mendRevivePet("mend")
+end
+local defensives = {hunterSpells.exhilaration, hunterSpells.aspectOfTheTurtle, hunterSpells.feignDeath}
+____exports.defensivesHandler = function()
+    local player = awful.player
+    if not player.combat then
+        return
+    end
+    callSpells(defensives)
+end
+local interrupts = {hunterSpells.muzzle, hunterSpells.freezingTrap, hunterSpells.intimidation}
+____exports.interruptsHandler = function() return callSpells(interrupts) end
+local function disengageForwardHandler()
+    local player = awful.player
+    if not hunterUI.disengageTrigger:enabled() then
+        if disengageForwardInfos.playerRotation ~= nil and disengageForwardInfos.inverseTime < awful.time then
+            player.face(disengageForwardInfos.playerRotation)
+            disengageForwardInfos.playerRotation = nil
+        end
+        return
+    end
+    if disengageForwardInfos.playerRotation == nil then
+        disengageForwardInfos.playerRotation = player.rotation
+        player.face(awful.inverse(disengageForwardInfos.playerRotation))
+        disengageForwardInfos.inverseTime = awful.time + 0.05
+    end
+    hunterSpells.disengage("forward")
+end
+awful.addUpdateCallback(disengageForwardHandler)
+return ____exports
+ end,
+["hunter.beastMastery"] = function(...) 
+local ____exports = {}
+local ____rotation = require("core.rotation")
+local selectNewTarget = ____rotation.selectNewTarget
+local ____utility = require("core.utility")
+local canCombat = ____utility.canCombat
+local canRun = ____utility.canRun
+local ____utility = require("hunter.utility")
+local fourthyFightableLosFacingUnits = ____utility.fourthyFightableLosFacingUnits
+local waitForBarbedShot = ____utility.waitForBarbedShot
+local hunterSpells = require("hunter.spells")
+local ____rotation = require("hunter.rotation")
+local defensivesHandler = ____rotation.defensivesHandler
+local interruptsHandler = ____rotation.interruptsHandler
+local petManager = ____rotation.petManager
+local function st()
+    hunterSpells.barbedShot("bm.barbedShot.st.1")
+    hunterSpells.killCommand("bm.killCommand.st.1")
+    hunterSpells.callOfTheWild()
+    hunterSpells.deathChakram()
+    hunterSpells.bloodshed()
+    hunterSpells.stampede()
+    hunterSpells.aMurderofCrows()
+    hunterSpells.steelTrap()
+    hunterSpells.exhilaration()
+    hunterSpells.bestialWrath()
+    hunterSpells.killCommand()
+    hunterSpells.barbedShot("bm.barbedShot.st.2")
+    hunterSpells.direBeast()
+    hunterSpells.killShot()
+    hunterSpells.aspectOfTheWild()
+    hunterSpells.cobraShot()
+    hunterSpells.wailingArrow()
+end
+local function cleave()
+    hunterSpells.barbedShot("bm.barbedShot.cleave.1")
+    hunterSpells.multiShot("bm.multishot.cleave.1")
+    hunterSpells.bestialWrath()
+    hunterSpells.killCommand("bm.killCommand.cleave.1")
+    hunterSpells.callOfTheWild()
+    hunterSpells.explosiveShot()
+    hunterSpells.stampede()
+    hunterSpells.bloodshed()
+    hunterSpells.deathChakram()
+    hunterSpells.steelTrap()
+    hunterSpells.aMurderofCrows()
+    hunterSpells.barbedShot("bm.barbedShot.cleave.2")
+    hunterSpells.killCommand()
+    hunterSpells.direBeast()
+    hunterSpells.barrage("bm.barrage.cleave.1")
+    hunterSpells.aspectOfTheWild()
+    hunterSpells.cobraShot("bm.cobraShot.cleave.1")
+    hunterSpells.wailingArrow()
+    hunterSpells.killShot()
+end
+____exports.bm = function()
+    if not canRun() then
+        return
+    end
+    selectNewTarget(fourthyFightableLosFacingUnits)
+    hunterSpells.barbedShot("refresh")
+    if waitForBarbedShot() then
+        return
+    end
+    defensivesHandler()
+    petManager()
+    interruptsHandler()
+    if not canCombat() then
+        return
+    end
+end
+return ____exports
+ end,
+["loader"] = function(...) 
+local ____exports = {}
+local ____beastMastery = require("hunter.beastMastery")
+local bm = ____beastMastery.bm
+awful.ttd_enabled = true
+awful.DevMode = true
+openPVE.hunter = {}
+openPVE.hunter.beastMastery = awful.Actor:New({spec = 1, class = "hunter"})
+openPVE.hunter.beastMastery:Init(function() return bm() end)
+return ____exports
+ end,
+["core.simc"] = function(...) 
+local ____exports = {}
+____exports.fullRechargeTime = function(spell)
+    local currentCharges, maxCharges, cooldownStart, cooldownDuration = GetSpellCharges(spell.id)
+    if not currentCharges then
+        return 0
+    end
+    local currentChargeTime = (currentCharges or 0) < (maxCharges or 0) and cooldownDuration - (GetTime() - (cooldownStart or 0)) or 0
+    local leftChargesTotalTime = (maxCharges - currentCharges - 1) * cooldownDuration
+    if currentCharges ~= maxCharges then
+        return currentChargeTime + leftChargesTotalTime
+    end
+    return 0
+end
+____exports.regenRate = function()
+    local ____, regenRate = awful.call("GetPowerRegen", awful.player.pointer)
+    return regenRate
+end
+____exports.timeToMax = function()
+    local player = awful.player
+    local maxPower = player.powerMax
+    local power = player.power
+    return maxPower == power and 0 or (maxPower - power) * (1 / ____exports.regenRate())
+end
+____exports.executeTime = function(baseTime)
+    local haste = awful.call("UnitSpellHaste", awful.player.pointer)
+    return baseTime / (1 + haste / 100)
+end
+____exports.castRegen = function(spell)
+    local regen = ____exports.regenRate()
+    local spellDescription = GetSpellDescription(spell.id)
+    local generates = string.gsub(spellDescription, "%D+", "")
+    local tooltip = tonumber(string.sub(generates, -2)) or 0
+    local castTime = spell.castTime
+    if castTime == 0 or castTime < awful.gcd then
+        castTime = awful.gcd
+    end
+    return regen * castTime + tooltip
+end
+local function isRefreshable(buffInfos)
+    if not buffInfos then
+        return true
+    end
+    local duration = buffInfos[5]
+    local expirationTime = buffInfos[6]
+    local remains = expirationTime - awful.time
+    return remains <= (duration - remains) * 0.3
+end
+____exports.isRefreshableDebuff = function(unit, buffId) return isRefreshable(unit.debuff(buffId)) end
+____exports.isRefreshableBuff = function(unit, buffId) return isRefreshable(unit.buff(buffId)) end
+return ____exports
+ end,
+["hunter.cache"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__New = ____lualib.__TS__New
+local ____exports = {}
+local ____lists = require("hunter.lists")
+local hunterDebuffs = ____lists.hunterDebuffs
+local ____utility = require("hunter.utility")
+local fourthyFightableLosFacingUnits = ____utility.fourthyFightableLosFacingUnits
+local modeUnits = ____utility.modeUnits
+local HunterCache = __TS__Class()
+HunterCache.name = "HunterCache"
+function HunterCache.prototype.____constructor(self)
+    awful.addUpdateCallback(function() return self:reset() end)
+end
+function HunterCache.prototype.reset(self)
+    self.cache = {}
+end
+function HunterCache.prototype.lowestbarbedShot(self)
+    local player = awful.player
+    if self.cache.lowestBarbedShot ~= nil then
+        return self.cache.lowestBarbedShot
+    end
+    local enemies = modeUnits()
+    local best = awful.target
+    local bestRemains = best.debuffRemains(hunterDebuffs.barbedShot, player)
+    for ____, enemy in ipairs(enemies) do
+        local enemyRemains = enemy.debuffRemains(hunterDebuffs.barbedShot, player)
+        if enemyRemains < bestRemains or enemyRemains == bestRemains and enemy.health > best.health then
+            best = enemy
+            bestRemains = enemyRemains
+        end
+    end
+    self.cache.lowestBarbedShot = best
+    return best
+end
+function HunterCache.prototype.minSerpentStingRemains(self, minTTD)
+    if minTTD == nil then
+        minTTD = 7
+    end
+    local player = awful.player
+    if self.cache.minSerpentStingByTTD and self.cache.minSerpentStingByTTD[minTTD] ~= nil then
+        return self.cache.minSerpentStingByTTD[minTTD]
+    end
+    local enemies = fourthyFightableLosFacingUnits()
+    local minRemains = 100
+    local minRemainsUnit = awful.target
+    if not minRemainsUnit.debuffRemains(hunterDebuffs.serpentSting, player) and minRemainsUnit.ttd > minTTD then
+        return minRemainsUnit
+    end
+    for ____, enemy in ipairs(enemies) do
+        local remains = enemy.debuffRemains(hunterDebuffs.serpentSting, player)
+        if enemy.ttd > minTTD and (remains < minRemains or remains == minRemains and enemy.hp > minRemainsUnit.hp) then
+            minRemains = remains
+            minRemainsUnit = enemy
+        end
+    end
+    self.cache.minSerpentStingByTTD = self.cache.minSerpentStingByTTD or ({})
+    self.cache.minSerpentStingByTTD[minTTD] = minRemainsUnit
+    return minRemainsUnit
+end
+____exports.hunterCache = __TS__New(HunterCache)
+return ____exports
+ end,
+["hunter.callbacks"] = function(...) 
+local ____exports = {}
+local hunterSpells = require("hunter.spells")
+local hunterUI = require("hunter.ui")
+local coreUI = require("core.ui")
+local ____lists = require("hunter.lists")
+local petBuffs = ____lists.petBuffs
+local hunterTalents = ____lists.hunterTalents
+local hunterBuffs = ____lists.hunterBuffs
+local ____simc = require("core.simc")
+local executeTime = ____simc.executeTime
+local fullRechargeTime = ____simc.fullRechargeTime
+local timeToMax = ____simc.timeToMax
+local ____cache = require("hunter.cache")
+local hunterCache = ____cache.hunterCache
+local ____utility = require("core.utility")
+local canCombat = ____utility.canCombat
+local canKickEnemy = ____utility.canKickEnemy
+local canStartCombat = ____utility.canStartCombat
+local canStunEnemy = ____utility.canStunEnemy
+local ____utility = require("hunter.utility")
+local disengageForwardInfos = ____utility.disengageForwardInfos
+local fourthyEngagedLosFacingUnits = ____utility.fourthyEngagedLosFacingUnits
+local fourthyEngagedLosUnits = ____utility.fourthyEngagedLosUnits
+local fourthyFightableLosFacingUnits = ____utility.fourthyFightableLosFacingUnits
+local petAlive = ____utility.petAlive
+local function barbedShotLowestCallback(spell)
+    local target = hunterCache:lowestbarbedShot()
+    return spell:Cast(target)
+end
+hunterSpells.barbedShot:Callback(function(spell)
+    local target = awful.target
+    if not petAlive() then
+        return
+    end
+    spell:Cast(target)
+end)
+hunterSpells.barbedShot:Callback(
+    "lowest",
+    function(spell)
+        if not petAlive() then
+            return
+        end
+        barbedShotLowestCallback(spell)
+    end
+)
+hunterSpells.barbedShot:Callback(
+    "refresh",
+    function(spell)
+        local pet = awful.pet
+        if not canCombat() or not petAlive() or not canStartCombat() then
+            return
+        end
+        local frenzyRemain = pet.buffRemains(petBuffs.frenzy)
+        if pet.buff(petBuffs.frenzy) ~= nil and frenzyRemain <= awful.gcd + awful.buffer * 2 and frenzyRemain >= awful.buffer then
+            if coreUI.rotationMode:singleTarget() then
+                spell:Cast(awful.target)
+            else
+                barbedShotLowestCallback(spell)
+            end
+        end
+    end
+)
+hunterSpells.barbedShot:Callback(
+    "bm.barbedShot.st.1",
+    function(spell)
+        local player = awful.player
+        local pet = awful.pet
+        if not petAlive() then
+            return
+        end
+        local frenzyRemain = pet.buffRemains(petBuffs.frenzy)
+        if pet.buff(petBuffs.frenzy) and frenzyRemain <= awful.gcd + awful.buffer * 2 and frenzyRemain >= awful.buffer or player.hasTalent(hunterTalents.scentOfBlood) and pet.buffStacks(petBuffs.frenzy) < 3 and hunterUI.bestialWrath:usable() and hunterSpells.bestialWrath.cd <= awful.gcd then
+            if coreUI.rotationMode:singleTarget() then
+                spell:Cast(awful.target)
+            else
+                barbedShotLowestCallback(spell)
+            end
+        end
+    end
+)
+hunterSpells.barbedShot:Callback(
+    "bm.barbedShot.st.2",
+    function(spell)
+        local player = awful.player
+        if not petAlive() then
+            return
+        end
+        if player.hasTalent(hunterTalents.wildInstincts) and player.buff(hunterTalents.callOfTheWild) or player.hasTalent(hunterTalents.wildCall) and hunterSpells.barbedShot.chargesFrac > 1.4 or fullRechargeTime(hunterSpells.barbedShot) < awful.gcd + awful.buffer * 2 and (not hunterUI.bestialWrath:usable() or hunterSpells.bestialWrath.cd > awful.gcd) or player.hasTalent(hunterTalents.scentOfBlood) and (hunterUI.bestialWrath:usable() and hunterSpells.bestialWrath.cd < 12 + awful.gcd + awful.buffer or fullRechargeTime(hunterSpells.barbedShot) + awful.gcd + awful.buffer < 8 and hunterUI.bestialWrath:usable() and hunterSpells.bestialWrath.cd < 24 + (8 - awful.gcd) + fullRechargeTime(hunterSpells.barbedShot) + awful.buffer) or awful.FightRemains() < 9 then
+            if coreUI.rotationMode:singleTarget() then
+                spell:Cast(awful.target)
+            else
+                barbedShotLowestCallback(spell)
+            end
+        end
+    end
+)
+hunterSpells.barbedShot:Callback(
+    "bm.barbedShot.cleave.1",
+    function(spell)
+        local player = awful.player
+        local pet = awful.pet
+        if not petAlive() then
+            return
+        end
+        local frenzyRemain = pet.buffRemains(petBuffs.frenzy)
+        if pet.buff(petBuffs.frenzy) and frenzyRemain <= awful.gcd + awful.buffer * 2 and frenzyRemain >= awful.buffer or player.hasTalent(hunterTalents.scentOfBlood) and hunterUI.bestialWrath:usable() and hunterSpells.bestialWrath.cd < 12 + awful.gcd or fullRechargeTime(hunterSpells.barbedShot) < awful.gcd + awful.buffer and (not hunterUI.bestialWrath:usable() or hunterSpells.bestialWrath.cd > awful.gcd) then
+            barbedShotLowestCallback(spell)
+        end
+    end
+)
+hunterSpells.barbedShot:Callback(
+    "bm.barbedShot.cleave.2",
+    function(spell)
+        local player = awful.player
+        if not petAlive() then
+            return
+        end
+        if player.hasTalent(hunterTalents.wildInstincts) and player.buff(hunterTalents.callOfTheWild) or awful.FightRemains() < 9 or player.hasTalent(hunterTalents.wildCall) and spell.chargesFrac > 1.2 then
+            barbedShotLowestCallback(spell)
+        end
+    end
+)
+local function killCommandDistanceCheck(target)
+    local pet = awful.pet
+    return pet.distanceToLiteral(target) <= 50
+end
+local function killCommandCallback(spell)
+    local target = awful.target
+    if killCommandDistanceCheck(target) then
+        spell:Cast(target)
+    end
+end
+hunterSpells.killCommand:Callback(function(spell)
+    if not petAlive() then
+        return
+    end
+    killCommandCallback(spell)
+end)
+hunterSpells.killCommand:Callback(
+    "bm.killCommand.st.1",
+    function(spell)
+        local player = awful.player
+        if petAlive() and player.hasTalent(hunterTalents.alphaPredator) and fullRechargeTime(spell) <= awful.gcd + awful.buffer * 2 then
+            killCommandCallback(spell)
+        end
+    end
+)
+hunterSpells.killCommand:Callback(
+    "bm.killCommand.cleave.1",
+    function(spell)
+        local player = awful.player
+        if not petAlive() then
+            return
+        end
+        if fullRechargeTime(spell) < awful.gcd + awful.buffer and player.hasTalent(hunterTalents.alphaPredator) and player.hasTalent(hunterTalents.killCleave) then
+            killCommandCallback(spell)
+        end
+    end
+)
+hunterSpells.callOfTheWild:Callback(function(spell)
+    if not hunterUI.callOfTheWild:usable() then
+        return
+    end
+    spell:Cast()
+end)
+hunterSpells.multiShot:Callback(
+    "bm.multishot.cleave.1",
+    function(spell)
+        local player = awful.player
+        local pet = awful.pet
+        local target = awful.target
+        if not petAlive() or not player.hasTalent(hunterTalents.beastCleave) then
+            return
+        end
+        if pet.buffRemains(petBuffs.beastCleave) < awful.gcd + awful.buffer * 2 then
+            spell:Cast(target)
+        end
+    end
+)
+hunterSpells.deathChakram:Callback(function(spell)
+    local target = awful.target
+    if not hunterUI.deathChakram:usable() then
+        return
+    end
+    spell:Cast(target)
+end)
+local function bloodshedDistanceCheck(target)
+    local pet = awful.pet
+    return pet.distanceToLiteral(target) <= 50
+end
+hunterSpells.bloodshed:Callback(function(spell)
+    local target = awful.target
+    if petAlive() and hunterUI.bloodshed:usable() and bloodshedDistanceCheck(target) then
+        spell:Cast(target)
+    end
+end)
+hunterSpells.stampede:Callback(function(spell)
+    if not hunterUI.stampede:usable() then
+        return
+    end
+    spell:Cast()
+end)
+hunterSpells.aMurderofCrows:Callback(function(spell)
+    local target = awful.target
+    if not hunterUI.aMurderofCrows:usable() then
+        return
+    end
+    spell:Cast(target)
+end)
+hunterSpells.barrage:Callback(
+    "bm.barrage.cleave.1",
+    function(spell)
+        local pet = awful.pet
+        if hunterUI.barrage:usable() and (not petAlive() or not pet.buff(petBuffs.frenzy) or pet.buffRemains(petBuffs.frenzy) > executeTime(2.8) + awful.buffer * 2) then
+            spell:Cast()
+        end
+    end
+)
+hunterSpells.steelTrap:Callback(function(spell)
+    local target = awful.target
+    if not hunterUI.steelTrap:usable() then
+        return
+    end
+    spell:AoECast(target)
+end)
+local function explosiveShotCallback(spell)
+    local target = awful.target
+    if not hunterUI.explosiveShot:usable() then
+        return false
+    end
+    return spell:Cast(target)
+end
+hunterSpells.explosiveShot:Callback(explosiveShotCallback)
+hunterSpells.bestialWrath:Callback(function(spell)
+    local player = awful.player
+    local target = awful.target
+    if petAlive() and hunterUI.bestialWrath:usable() and player.distanceTo(target) <= 50 then
+        spell:Cast()
+    end
+end)
+hunterSpells.direBeast:Callback(function(spell)
+    local target = awful.target
+    if not hunterUI.direBeast:usable() then
+        return
+    end
+    spell:Cast(target)
+end)
+local function killShotIgnoreHP()
+    local player = awful.player
+    return player.buff(hunterBuffs.deathblow) ~= nil or player.buff(hunterBuffs.coordinatedAssault) ~= nil and player.hasTalent(hunterTalents.coordinatedKill) ~= false
+end
+hunterSpells.killShot:Callback(function(spell)
+    local target = awful.target
+    if not killShotIgnoreHP() and target.hp > 20 then
+        return
+    end
+    spell:Cast(target)
+end)
+hunterSpells.killShot:Callback(
+    "aoe",
+    function(spell)
+        local enemies = fourthyFightableLosFacingUnits()
+        if killShotIgnoreHP() then
+            spell:Cast(awful.target)
+        end
+        for ____, enemy in ipairs(enemies) do
+            if enemy.hp <= 20 then
+                if spell:Cast(enemy) then
+                    return
+                end
+            end
+        end
+    end
+)
+hunterSpells.aspectOfTheWild:Callback(function(spell)
+    local target = awful.target
+    if not hunterUI.aspectOfTheWild:usable() then
+        return
+    end
+    spell:Cast(target)
+end)
+hunterSpells.cobraShot:Callback(function(spell)
+    local target = awful.target
+    spell:Cast(target)
+end)
+hunterSpells.cobraShot:Callback(
+    "bm.cobraShot.cleave.1",
+    function(spell)
+        local player = awful.player
+        local target = awful.target
+        local ttm = timeToMax()
+        if ttm < awful.gcd * 2 or player.buff(hunterBuffs.aspectOfTheWild) and ttm < awful.gcd * 4 then
+            spell:Cast(target)
+        end
+    end
+)
+hunterSpells.wailingArrow:Callback(function(spell)
+    local pet = awful.pet
+    local target = awful.target
+    if hunterUI.wailingArrow:usable() and (not petAlive() or not pet.buff(petBuffs.frenzy) or pet.buffRemains(petBuffs.frenzy) > hunterSpells.wailingArrow.castTime + awful.buffer * 2 or awful.FightRemains() < 5) then
+        spell:Cast(target)
+    end
+end)
+hunterSpells.counterShot:Callback(function(spell)
+    if not hunterUI.counterShot:enabled() or not coreUI.interrupts:enabled() then
+        return
+    end
+    local enemies = fourthyEngagedLosFacingUnits()
+    for ____, enemy in ipairs(enemies) do
+        if canKickEnemy(enemy) then
+            if spell:Cast(enemy) then
+                return
+            end
+        end
+    end
+end)
+hunterSpells.intimidation:Callback(function(spell)
+    local pet = awful.pet
+    if not petAlive() or not hunterUI.intimidation:enabled() or not coreUI.interrupts:enabled() then
+        return
+    end
+    local enemies = fourthyEngagedLosUnits()
+    for ____, enemy in ipairs(enemies) do
+        if enemy.distanceTo(pet) <= 50 and canStunEnemy(enemy, 0.5) then
+            if spell:Cast(enemy) then
+                return
+            end
+        end
+    end
+end)
+hunterSpells.freezingTrap:Callback(function(spell)
+    if not hunterUI.freezingTrap:enabled() or not coreUI.interrupts:enabled() then
+        return
+    end
+    local enemies = fourthyEngagedLosUnits()
+    for ____, enemy in ipairs(enemies) do
+        if canStunEnemy(enemy, 1) then
+            if spell:AoECast(enemy) then
+                return
+            end
+        end
+    end
+end)
+hunterSpells.exhilaration:Callback(function(spell)
+    if hunterUI.exhilaration:usable() then
+        spell:Cast()
+    end
+end)
+hunterSpells.aspectOfTheTurtle:Callback(function(spell)
+    if hunterUI.aspectOfTheTurtle:usable() and not awful.player.buff(hunterBuffs.aspectOfTheTurtle) then
+        spell:Cast()
+    end
+end)
+hunterSpells.feignDeath:Callback(function(spell)
+    if hunterUI.feignDeath:usable() and not awful.player.buff(hunterBuffs.feignDeath) then
+        spell:Cast()
+    end
+end)
+hunterSpells.cobraShot:Callback(
+    "mechanic",
+    function(spell, unit)
+        if unit.los and unit.playerFacing and unit.distance < 40 then
+            spell:Cast(unit)
+        end
+    end
+)
+hunterSpells.counterShot:Callback(
+    "mechanic",
+    function(spell, unit)
+        if unit.los and unit.playerFacing and unit.distance < 40 then
+            spell:Cast(unit)
+        end
+    end
+)
+hunterSpells.tranquilizingShot:Callback(
+    "mechanic",
+    function(spell, unit)
+        if unit.los and unit.playerFacing and unit.distance < 40 then
+            spell:Cast(unit)
+        end
+    end
+)
+hunterSpells.freezingTrap:Callback(
+    "mechanic",
+    function(spell, unit)
+        if unit.los and unit.distance < 40 then
+            spell:AoECast(unit)
+        end
+    end
+)
+hunterSpells.tarTrap:Callback(
+    "mechanic",
+    function(spell, unit)
+        if unit.los and unit.distance <= 40 then
+            spell:AoECast(unit)
+        end
+    end
+)
+hunterSpells.bindingShot:Callback(
+    "mechanic",
+    function(spell, unit)
+        if unit.los and unit.distance <= 30 then
+            spell:AoECast(unit)
+        end
+    end
+)
+hunterSpells.serpentSting:Callback(
+    "mechanic",
+    function(spell, unit)
+        if unit.los and unit.playerFacing and unit.distance <= 40 then
+            spell:Cast(unit)
+        end
+    end
+)
+hunterSpells.intimidation:Callback(
+    "mechanic",
+    function(spell, unit)
+        local pet = awful.pet
+        local target = unit
+        if not petAlive() then
+            return
+        end
+        if target.los and target.distance < 100 and target.distanceTo(pet) < 50 then
+            spell:Cast(target)
+        end
+    end
+)
+hunterSpells.feignDeath:Callback(
+    "mechanic",
+    function(spell)
+        spell:Cast()
+    end
+)
+hunterSpells.disengage:Callback(
+    "forward",
+    function(spell)
+        if disengageForwardInfos.inverseTime > awful.time then
+            return
+        end
+        if spell:Cast() then
+            hunterUI.disengageTrigger:disable()
+            disengageForwardInfos.inverseTime = awful.time + 0.05
+        end
+    end
+)
 return ____exports
  end,
 }
