@@ -27,6 +27,16 @@ local function __TS__Class(self)
     return c
 end
 
+local function __TS__StringIncludes(self, searchString, position)
+    if not position then
+        position = 1
+    else
+        position = position + 1
+    end
+    local index = string.find(self, searchString, position, true)
+    return index ~= nil
+end
+
 local function __TS__New(target, ...)
     local instance = setmetatable({}, target.prototype)
     instance:____constructor(...)
@@ -56,77 +66,6 @@ local function __TS__ClassExtends(target, base)
     if type(base.prototype.__tostring) == "function" then
         target.prototype.__tostring = base.prototype.__tostring
     end
-end
-
-local function __TS__ObjectValues(obj)
-    local result = {}
-    local len = 0
-    for key in pairs(obj) do
-        len = len + 1
-        result[len] = obj[key]
-    end
-    return result
-end
-
-local function __TS__ArrayIncludes(self, searchElement, fromIndex)
-    if fromIndex == nil then
-        fromIndex = 0
-    end
-    local len = #self
-    local k = fromIndex
-    if fromIndex < 0 then
-        k = len + fromIndex
-    end
-    if k < 0 then
-        k = 0
-    end
-    for i = k + 1, len do
-        if self[i] == searchElement then
-            return true
-        end
-    end
-    return false
-end
-
-local function __TS__ArrayForEach(self, callbackFn, thisArg)
-    for i = 1, #self do
-        callbackFn(thisArg, self[i], i - 1, self)
-    end
-end
-
-local function __TS__CountVarargs(...)
-    return select("#", ...)
-end
-
-local function __TS__SparseArrayNew(...)
-    local sparseArray = {...}
-    sparseArray.sparseLength = __TS__CountVarargs(...)
-    return sparseArray
-end
-
-local function __TS__SparseArrayPush(sparseArray, ...)
-    local args = {...}
-    local argsLen = __TS__CountVarargs(...)
-    local listLen = sparseArray.sparseLength
-    for i = 1, argsLen do
-        sparseArray[listLen + i] = args[i]
-    end
-    sparseArray.sparseLength = listLen + argsLen
-end
-
-local function __TS__SparseArraySpread(sparseArray)
-    local _unpack = unpack or table.unpack
-    return _unpack(sparseArray, 1, sparseArray.sparseLength)
-end
-
-local function __TS__StringIncludes(self, searchString, position)
-    if not position then
-        position = 1
-    else
-        position = position + 1
-    end
-    local index = string.find(self, searchString, position, true)
-    return index ~= nil
 end
 
 local Error, RangeError, ReferenceError, SyntaxError, TypeError, URIError
@@ -234,8 +173,70 @@ local function __TS__Delete(target, key)
     return true
 end
 
+local function __TS__ObjectValues(obj)
+    local result = {}
+    local len = 0
+    for key in pairs(obj) do
+        len = len + 1
+        result[len] = obj[key]
+    end
+    return result
+end
+
+local function __TS__ArrayIncludes(self, searchElement, fromIndex)
+    if fromIndex == nil then
+        fromIndex = 0
+    end
+    local len = #self
+    local k = fromIndex
+    if fromIndex < 0 then
+        k = len + fromIndex
+    end
+    if k < 0 then
+        k = 0
+    end
+    for i = k + 1, len do
+        if self[i] == searchElement then
+            return true
+        end
+    end
+    return false
+end
+
+local function __TS__ArrayForEach(self, callbackFn, thisArg)
+    for i = 1, #self do
+        callbackFn(thisArg, self[i], i - 1, self)
+    end
+end
+
+local function __TS__CountVarargs(...)
+    return select("#", ...)
+end
+
+local function __TS__SparseArrayNew(...)
+    local sparseArray = {...}
+    sparseArray.sparseLength = __TS__CountVarargs(...)
+    return sparseArray
+end
+
+local function __TS__SparseArrayPush(sparseArray, ...)
+    local args = {...}
+    local argsLen = __TS__CountVarargs(...)
+    local listLen = sparseArray.sparseLength
+    for i = 1, argsLen do
+        sparseArray[listLen + i] = args[i]
+    end
+    sparseArray.sparseLength = listLen + argsLen
+end
+
+local function __TS__SparseArraySpread(sparseArray)
+    local _unpack = unpack or table.unpack
+    return _unpack(sparseArray, 1, sparseArray.sparseLength)
+end
+
 return {
   __TS__Class = __TS__Class,
+  __TS__Delete = __TS__Delete,
   __TS__New = __TS__New,
   __TS__ClassExtends = __TS__ClassExtends,
   __TS__ObjectValues = __TS__ObjectValues,
@@ -243,9 +244,59 @@ return {
   __TS__ArrayForEach = __TS__ArrayForEach,
   __TS__SparseArrayNew = __TS__SparseArrayNew,
   __TS__SparseArrayPush = __TS__SparseArrayPush,
-  __TS__SparseArraySpread = __TS__SparseArraySpread,
-  __TS__Delete = __TS__Delete
+  __TS__SparseArraySpread = __TS__SparseArraySpread
 }
+ end,
+["loader"] = function(...) 
+awful.ttd_enabled = true
+awful.DevMode = true
+openPVE.hunter = {}
+if awful.player.spec == "Beast Mastery" then
+    local ____beastMastery = require("hunter.beastMastery")
+    local bm = ____beastMastery.bm
+    openPVE.hunter.beastMastery = awful.Actor:New({spec = 1, class = "hunter"})
+    openPVE.hunter.beastMastery:Init(function() return bm() end)
+end
+ end,
+["core.bigWigs"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__Class = ____lualib.__TS__Class
+local __TS__Delete = ____lualib.__TS__Delete
+local __TS__New = ____lualib.__TS__New
+local ____exports = {}
+local BigWigsBars = BigWigsBars or ({})
+BigWigsBars.Pull = "Pull"
+local BigWigsTimeLine = __TS__Class()
+BigWigsTimeLine.name = "BigWigsTimeLine"
+function BigWigsTimeLine.prototype.____constructor(self)
+    self.bars = {}
+    awful.addUpdateCallback(function()
+        self:run()
+    end)
+end
+function BigWigsTimeLine.prototype.run(self)
+    self:updateBars()
+end
+function BigWigsTimeLine.prototype.updateBars(self)
+    if BigWigsEmphasizeAnchor == nil then
+        return
+    end
+    for bar in pairs(BigWigsEmphasizeAnchor.bars) do
+        if bar.remaining > 0.1 and (self.bars[bar.candyBarLabel.text] == nil or self.bars[bar.candyBarLabel.text].start ~= bar.start) then
+            self.bars[bar.candyBarLabel.text] = bar
+        end
+    end
+    for barName in pairs(self.bars) do
+        if self.bars[barName].remaining < 0.1 then
+            __TS__Delete(self.bars, barName)
+        end
+    end
+end
+function BigWigsTimeLine.prototype.pullTimer(self)
+    return self.bars[BigWigsBars.Pull] and self.bars[BigWigsBars.Pull].remaining or 0
+end
+____exports.bigWigsTimeLine = __TS__New(BigWigsTimeLine)
+return ____exports
  end,
 ["core.lists"] = function(...) 
 local ____lualib = require("lualib_bundle")
@@ -2002,6 +2053,58 @@ end
 ____exports.fightTracker = __TS__New(FightTracker)
 return ____exports
  end,
+["core.simc"] = function(...) 
+local ____exports = {}
+____exports.fullRechargeTime = function(spell)
+    local currentCharges, maxCharges, cooldownStart, cooldownDuration = GetSpellCharges(spell.id)
+    if not currentCharges then
+        return 0
+    end
+    local currentChargeTime = (currentCharges or 0) < (maxCharges or 0) and cooldownDuration - (GetTime() - (cooldownStart or 0)) or 0
+    local leftChargesTotalTime = (maxCharges - currentCharges - 1) * cooldownDuration
+    if currentCharges ~= maxCharges then
+        return currentChargeTime + leftChargesTotalTime
+    end
+    return 0
+end
+____exports.regenRate = function()
+    local ____, regenRate = awful.call("GetPowerRegen", awful.player.pointer)
+    return regenRate
+end
+____exports.timeToMax = function()
+    local player = awful.player
+    local maxPower = player.powerMax
+    local power = player.power
+    return maxPower == power and 0 or (maxPower - power) * (1 / ____exports.regenRate())
+end
+____exports.executeTime = function(baseTime)
+    local haste = awful.call("UnitSpellHaste", awful.player.pointer)
+    return baseTime / (1 + haste / 100)
+end
+____exports.castRegen = function(spell)
+    local regen = ____exports.regenRate()
+    local spellDescription = GetSpellDescription(spell.id)
+    local generates = string.gsub(spellDescription, "%D+", "")
+    local tooltip = tonumber(string.sub(generates, -2)) or 0
+    local castTime = spell.castTime
+    if castTime == 0 or castTime < awful.gcd then
+        castTime = awful.gcd
+    end
+    return regen * castTime + tooltip
+end
+local function isRefreshable(buffInfos)
+    if not buffInfos then
+        return true
+    end
+    local duration = buffInfos[5]
+    local expirationTime = buffInfos[6]
+    local remains = expirationTime - awful.time
+    return remains <= (duration - remains) * 0.3
+end
+____exports.isRefreshableDebuff = function(unit, buffId) return isRefreshable(unit.debuff(buffId)) end
+____exports.isRefreshableBuff = function(unit, buffId) return isRefreshable(unit.buff(buffId)) end
+return ____exports
+ end,
 ["hunter.lists"] = function(...) 
 local ____exports = {}
 ____exports.hunterBuffs = {
@@ -2414,209 +2517,6 @@ local function disengageForwardHandler()
     hunterSpells.disengage("forward")
 end
 awful.addUpdateCallback(disengageForwardHandler)
-return ____exports
- end,
-["core.bigWigs"] = function(...) 
-local ____lualib = require("lualib_bundle")
-local __TS__Class = ____lualib.__TS__Class
-local __TS__Delete = ____lualib.__TS__Delete
-local __TS__New = ____lualib.__TS__New
-local ____exports = {}
-local BigWigsBars = BigWigsBars or ({})
-BigWigsBars.Pull = "Pull"
-local BigWigsTimeLine = __TS__Class()
-BigWigsTimeLine.name = "BigWigsTimeLine"
-function BigWigsTimeLine.prototype.____constructor(self)
-    self.bars = {}
-    awful.addUpdateCallback(function()
-        self:run()
-    end)
-end
-function BigWigsTimeLine.prototype.run(self)
-    self:updateBars()
-end
-function BigWigsTimeLine.prototype.updateBars(self)
-    if BigWigsEmphasizeAnchor == nil then
-        return
-    end
-    for bar in pairs(BigWigsEmphasizeAnchor.bars) do
-        if bar.remaining > 0.1 and (self.bars[bar.candyBarLabel.text] == nil or self.bars[bar.candyBarLabel.text].start ~= bar.start) then
-            self.bars[bar.candyBarLabel.text] = bar
-        end
-    end
-    for barName in pairs(self.bars) do
-        if self.bars[barName].remaining < 0.1 then
-            __TS__Delete(self.bars, barName)
-        end
-    end
-end
-function BigWigsTimeLine.prototype.pullTimer(self)
-    return self.bars[BigWigsBars.Pull] and self.bars[BigWigsBars.Pull].remaining or 0
-end
-____exports.bigWigsTimeLine = __TS__New(BigWigsTimeLine)
-return ____exports
- end,
-["hunter.beastMastery"] = function(...) 
-local ____exports = {}
-local ____rotation = require("core.rotation")
-local selectNewTarget = ____rotation.selectNewTarget
-local ____utility = require("core.utility")
-local canCombat = ____utility.canCombat
-local canRun = ____utility.canRun
-local ____utility = require("hunter.utility")
-local fourthyFightableLosFacingUnits = ____utility.fourthyFightableLosFacingUnits
-local isSingleTarget = ____utility.isSingleTarget
-local waitForBarbedShot = ____utility.waitForBarbedShot
-local hunterSpells = require("hunter.spells")
-local ____rotation = require("hunter.rotation")
-local defensivesHandler = ____rotation.defensivesHandler
-local interruptsHandler = ____rotation.interruptsHandler
-local petManager = ____rotation.petManager
-local ____bigWigs = require("core.bigWigs")
-local bigWigsTimeLine = ____bigWigs.bigWigsTimeLine
-local hunterUI = require("hunter.ui")
-local function st()
-    hunterSpells.barbedShot("bm.barbedShot.st.1")
-    hunterSpells.killCommand("bm.killCommand.st.1")
-    hunterSpells.callOfTheWild()
-    hunterSpells.deathChakram()
-    hunterSpells.bloodshed()
-    hunterSpells.stampede()
-    hunterSpells.aMurderofCrows()
-    hunterSpells.steelTrap()
-    hunterSpells.exhilaration()
-    hunterSpells.bestialWrath()
-    hunterSpells.killCommand()
-    hunterSpells.barbedShot("bm.barbedShot.st.2")
-    hunterSpells.direBeast()
-    hunterSpells.killShot()
-    hunterSpells.aspectOfTheWild()
-    hunterSpells.cobraShot()
-    hunterSpells.wailingArrow()
-end
-local function cleave()
-    hunterSpells.barbedShot("bm.barbedShot.cleave.1")
-    hunterSpells.multiShot("bm.multishot.cleave.1")
-    hunterSpells.bestialWrath()
-    hunterSpells.killCommand("bm.killCommand.cleave.1")
-    hunterSpells.callOfTheWild()
-    hunterSpells.explosiveShot()
-    hunterSpells.stampede()
-    hunterSpells.bloodshed()
-    hunterSpells.deathChakram()
-    hunterSpells.steelTrap()
-    hunterSpells.aMurderofCrows()
-    hunterSpells.barbedShot("bm.barbedShot.cleave.2")
-    hunterSpells.killCommand()
-    hunterSpells.direBeast()
-    hunterSpells.barrage("bm.barrage.cleave.1")
-    hunterSpells.aspectOfTheWild()
-    hunterSpells.cobraShot("bm.cobraShot.cleave.1")
-    hunterSpells.wailingArrow()
-    hunterSpells.killShot()
-end
-local function cds()
-end
-local function opener()
-    local pulltimer = bigWigsTimeLine:pullTimer()
-    if pulltimer == 0 or pulltimer < 0.5 then
-        return
-    end
-    if pulltimer <= 1.5 then
-        hunterSpells.steelTrap()
-    end
-    if pulltimer <= hunterSpells.wailingArrow.castTime + awful.buffer and (not hunterSpells.steelTrap.usable or not hunterUI.wailingArrow:usable()) then
-        hunterSpells.wailingArrow()
-    end
-end
-____exports.bm = function()
-    if not canRun() then
-        return
-    end
-    selectNewTarget(fourthyFightableLosFacingUnits)
-    hunterSpells.barbedShot("refresh")
-    if waitForBarbedShot() then
-        return
-    end
-    defensivesHandler()
-    petManager()
-    hunterSpells.misdirection()
-    interruptsHandler()
-    opener()
-    if not canCombat() then
-        return
-    end
-    awful.call("StartAttack")
-    cds()
-    if isSingleTarget() then
-        st()
-    else
-        cleave()
-    end
-end
-return ____exports
- end,
-["loader"] = function(...) 
-local ____exports = {}
-local ____beastMastery = require("hunter.beastMastery")
-local bm = ____beastMastery.bm
-awful.ttd_enabled = true
-awful.DevMode = true
-openPVE.hunter = {}
-openPVE.hunter.beastMastery = awful.Actor:New({spec = 1, class = "hunter"})
-openPVE.hunter.beastMastery:Init(function() return bm() end)
-return ____exports
- end,
-["core.simc"] = function(...) 
-local ____exports = {}
-____exports.fullRechargeTime = function(spell)
-    local currentCharges, maxCharges, cooldownStart, cooldownDuration = GetSpellCharges(spell.id)
-    if not currentCharges then
-        return 0
-    end
-    local currentChargeTime = (currentCharges or 0) < (maxCharges or 0) and cooldownDuration - (GetTime() - (cooldownStart or 0)) or 0
-    local leftChargesTotalTime = (maxCharges - currentCharges - 1) * cooldownDuration
-    if currentCharges ~= maxCharges then
-        return currentChargeTime + leftChargesTotalTime
-    end
-    return 0
-end
-____exports.regenRate = function()
-    local ____, regenRate = awful.call("GetPowerRegen", awful.player.pointer)
-    return regenRate
-end
-____exports.timeToMax = function()
-    local player = awful.player
-    local maxPower = player.powerMax
-    local power = player.power
-    return maxPower == power and 0 or (maxPower - power) * (1 / ____exports.regenRate())
-end
-____exports.executeTime = function(baseTime)
-    local haste = awful.call("UnitSpellHaste", awful.player.pointer)
-    return baseTime / (1 + haste / 100)
-end
-____exports.castRegen = function(spell)
-    local regen = ____exports.regenRate()
-    local spellDescription = GetSpellDescription(spell.id)
-    local generates = string.gsub(spellDescription, "%D+", "")
-    local tooltip = tonumber(string.sub(generates, -2)) or 0
-    local castTime = spell.castTime
-    if castTime == 0 or castTime < awful.gcd then
-        castTime = awful.gcd
-    end
-    return regen * castTime + tooltip
-end
-local function isRefreshable(buffInfos)
-    if not buffInfos then
-        return true
-    end
-    local duration = buffInfos[5]
-    local expirationTime = buffInfos[6]
-    local remains = expirationTime - awful.time
-    return remains <= (duration - remains) * 0.3
-end
-____exports.isRefreshableDebuff = function(unit, buffId) return isRefreshable(unit.debuff(buffId)) end
-____exports.isRefreshableBuff = function(unit, buffId) return isRefreshable(unit.buff(buffId)) end
 return ____exports
  end,
 ["hunter.cache"] = function(...) 
@@ -3146,6 +3046,111 @@ hunterSpells.misdirection:Callback(function(spell)
         spell:Cast(pet)
     end
 end)
+____exports.load = function()
+end
+return ____exports
+ end,
+["hunter.beastMastery"] = function(...) 
+local ____exports = {}
+local ____rotation = require("core.rotation")
+local selectNewTarget = ____rotation.selectNewTarget
+local ____utility = require("core.utility")
+local canCombat = ____utility.canCombat
+local canRun = ____utility.canRun
+local ____utility = require("hunter.utility")
+local fourthyFightableLosFacingUnits = ____utility.fourthyFightableLosFacingUnits
+local isSingleTarget = ____utility.isSingleTarget
+local waitForBarbedShot = ____utility.waitForBarbedShot
+local hunterSpells = require("hunter.spells")
+local ____rotation = require("hunter.rotation")
+local defensivesHandler = ____rotation.defensivesHandler
+local interruptsHandler = ____rotation.interruptsHandler
+local petManager = ____rotation.petManager
+local ____bigWigs = require("core.bigWigs")
+local bigWigsTimeLine = ____bigWigs.bigWigsTimeLine
+local hunterUI = require("hunter.ui")
+local ____callbacks = require("hunter.callbacks")
+local load = ____callbacks.load
+load()
+local function st()
+    hunterSpells.barbedShot("bm.barbedShot.st.1")
+    hunterSpells.killCommand("bm.killCommand.st.1")
+    hunterSpells.callOfTheWild()
+    hunterSpells.deathChakram()
+    hunterSpells.bloodshed()
+    hunterSpells.stampede()
+    hunterSpells.aMurderofCrows()
+    hunterSpells.steelTrap()
+    hunterSpells.exhilaration()
+    hunterSpells.bestialWrath()
+    hunterSpells.killCommand()
+    hunterSpells.barbedShot("bm.barbedShot.st.2")
+    hunterSpells.direBeast()
+    hunterSpells.killShot()
+    hunterSpells.aspectOfTheWild()
+    hunterSpells.cobraShot()
+    hunterSpells.wailingArrow()
+end
+local function cleave()
+    hunterSpells.barbedShot("bm.barbedShot.cleave.1")
+    hunterSpells.multiShot("bm.multishot.cleave.1")
+    hunterSpells.bestialWrath()
+    hunterSpells.killCommand("bm.killCommand.cleave.1")
+    hunterSpells.callOfTheWild()
+    hunterSpells.explosiveShot()
+    hunterSpells.stampede()
+    hunterSpells.bloodshed()
+    hunterSpells.deathChakram()
+    hunterSpells.steelTrap()
+    hunterSpells.aMurderofCrows()
+    hunterSpells.barbedShot("bm.barbedShot.cleave.2")
+    hunterSpells.killCommand()
+    hunterSpells.direBeast()
+    hunterSpells.barrage("bm.barrage.cleave.1")
+    hunterSpells.aspectOfTheWild()
+    hunterSpells.cobraShot("bm.cobraShot.cleave.1")
+    hunterSpells.wailingArrow()
+    hunterSpells.killShot()
+end
+local function cds()
+end
+local function opener()
+    local pulltimer = bigWigsTimeLine:pullTimer()
+    if pulltimer == 0 or pulltimer < 0.5 then
+        return
+    end
+    if pulltimer <= 1.5 then
+        hunterSpells.steelTrap()
+    end
+    if pulltimer <= hunterSpells.wailingArrow.castTime + awful.buffer and (not hunterSpells.steelTrap.usable or not hunterUI.wailingArrow:usable()) then
+        hunterSpells.wailingArrow()
+    end
+end
+____exports.bm = function()
+    if not canRun() then
+        return
+    end
+    selectNewTarget(fourthyFightableLosFacingUnits)
+    hunterSpells.barbedShot("refresh")
+    if waitForBarbedShot() then
+        return
+    end
+    defensivesHandler()
+    petManager()
+    hunterSpells.misdirection()
+    interruptsHandler()
+    opener()
+    if not canCombat() then
+        return
+    end
+    awful.call("StartAttack")
+    cds()
+    if isSingleTarget() then
+        st()
+    else
+        cleave()
+    end
+end
 return ____exports
  end,
 }
