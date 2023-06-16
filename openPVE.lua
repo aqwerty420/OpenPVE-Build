@@ -1446,32 +1446,57 @@ local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
 local __TS__New = ____lualib.__TS__New
 local ____exports = {}
+local trinketsCache = {}
 local Trinket = __TS__Class()
 Trinket.name = "Trinket"
-function Trinket.prototype.____constructor(self, slot)
+function Trinket.prototype.____constructor(self, slot, options)
     self.slot = slot
-    self.trinket = nil
+    self.options = options or ({})
+    self:updateAwfulItem()
+end
+function Trinket.prototype.getAwfulItem(self)
+    local itemId = GetInventoryItemID("player", self.slot)
+    if itemId == 0 then
+        return nil
+    end
+    if trinketsCache[itemId] ~= nil then
+        return trinketsCache[itemId]
+    end
+    return awful.NewItem(itemId)
+end
+function Trinket.prototype.updateAwfulItem(self)
+    self.trinket = self:getAwfulItem()
 end
 function Trinket.prototype.canUse(self)
     local start, ____, enable = awful.call("GetInventoryItemCooldown", "player", self.slot)
     return enable == 1 and start == 0
 end
-function Trinket.prototype.use(self, ignoreGriefTorche)
-    if ignoreGriefTorche == nil then
-        ignoreGriefTorche = false
+function Trinket.prototype.ignoreGriefTorche(self, options)
+    local ____temp_2 = options and options.ignoreGriefTorche
+    if ____temp_2 == nil then
+        ____temp_2 = self.options.ignoreGriefTorche
     end
+    local ignoreGriefTorche = ____temp_2
+    local ____temp_5 = ignoreGriefTorche == true
+    if ____temp_5 then
+        local ____opt_3 = self.trinket
+        ____temp_5 = (____opt_3 and ____opt_3.id) == 194308
+    end
+    return ____temp_5
+end
+function Trinket.prototype.use(self, options)
     local player = awful.player
     if not self:canUse() then
         return false
     end
-    local itemId = GetInventoryItemID("player", self.slot)
-    if self.trinket == nil or self.trinket.id ~= itemId then
-        self.trinket = awful.NewItem(itemId)
+    self:updateAwfulItem()
+    if self.trinket == nil then
+        return false
     end
     if self.trinket.casttime > 0 and player.moving then
         return false
     end
-    if ignoreGriefTorche == true and itemId == 194308 then
+    if self:ignoreGriefTorche(options) then
         return false
     end
     if self.trinket:Use(awful.target) then
@@ -1486,7 +1511,6 @@ ____exports.healthStone = newItem(5512)
 ____exports.refreshingHealingPotionOne = newItem(191378)
 ____exports.refreshingHealingPotionTwo = newItem(191379)
 ____exports.refreshingHealingPotionThree = newItem(191380)
-____exports.refreshingHealingPotionOne:Use()
 return ____exports
  end,
 ["core.ui"] = function(...) 
@@ -2050,10 +2074,7 @@ ____exports.fourthyFightableLosFacingParams = {
     immune = true
 }
 ____exports.fourthyFightableLosFacingUnits = function() return coreCache:getUnits(____exports.fourthyFightableLosFacingParams) end
-____exports.petAlive = function()
-    local pet = awful.pet
-    return pet.exists and not pet.dead
-end
+____exports.petAlive = function() return awful.pet.exists and not awful.pet.dead end
 ____exports.fourthyEngagedLosFacingParams = {
     distance = 40,
     alive = true,
@@ -2429,6 +2450,7 @@ ____exports.bm = function()
         return
     end
     awful.call("StartAttack")
+    cds()
     if isSingleTarget() then
         st()
     else
