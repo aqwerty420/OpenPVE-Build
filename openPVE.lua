@@ -94,6 +94,31 @@ local function __TS__ArrayForEach(self, callbackFn, thisArg)
     end
 end
 
+local function __TS__CountVarargs(...)
+    return select("#", ...)
+end
+
+local function __TS__SparseArrayNew(...)
+    local sparseArray = {...}
+    sparseArray.sparseLength = __TS__CountVarargs(...)
+    return sparseArray
+end
+
+local function __TS__SparseArrayPush(sparseArray, ...)
+    local args = {...}
+    local argsLen = __TS__CountVarargs(...)
+    local listLen = sparseArray.sparseLength
+    for i = 1, argsLen do
+        sparseArray[listLen + i] = args[i]
+    end
+    sparseArray.sparseLength = listLen + argsLen
+end
+
+local function __TS__SparseArraySpread(sparseArray)
+    local _unpack = unpack or table.unpack
+    return _unpack(sparseArray, 1, sparseArray.sparseLength)
+end
+
 local function __TS__StringIncludes(self, searchString, position)
     if not position then
         position = 1
@@ -216,6 +241,9 @@ return {
   __TS__ObjectValues = __TS__ObjectValues,
   __TS__ArrayIncludes = __TS__ArrayIncludes,
   __TS__ArrayForEach = __TS__ArrayForEach,
+  __TS__SparseArrayNew = __TS__SparseArrayNew,
+  __TS__SparseArrayPush = __TS__SparseArrayPush,
+  __TS__SparseArraySpread = __TS__SparseArraySpread,
   __TS__Delete = __TS__Delete
 }
  end,
@@ -2328,6 +2356,10 @@ end)
 return ____exports
  end,
 ["hunter.rotation"] = function(...) 
+local ____lualib = require("lualib_bundle")
+local __TS__SparseArrayNew = ____lualib.__TS__SparseArrayNew
+local __TS__SparseArrayPush = ____lualib.__TS__SparseArrayPush
+local __TS__SparseArraySpread = ____lualib.__TS__SparseArraySpread
 local ____exports = {}
 local hunterUI = require("hunter.ui")
 local ____utility = require("hunter.utility")
@@ -2350,14 +2382,18 @@ ____exports.petManager = function()
     callPet()
     hunterSpells.mendRevivePet("mend")
 end
-local defensives = {hunterSpells.exhilaration, hunterSpells.aspectOfTheTurtle, hunterSpells.feignDeath}
+local ____array_0 = __TS__SparseArrayNew(
+    hunterSpells.exhilaration,
+    unpack(coreDefensives)
+)
+__TS__SparseArrayPush(____array_0, hunterSpells.aspectOfTheTurtle, hunterSpells.feignDeath)
+local defensives = {__TS__SparseArraySpread(____array_0)}
 ____exports.defensivesHandler = function()
     local player = awful.player
     if not player.combat then
         return
     end
     callAll(defensives)
-    callAll(coreDefensives)
 end
 local interrupts = {hunterSpells.muzzle, hunterSpells.freezingTrap, hunterSpells.intimidation}
 ____exports.interruptsHandler = function() return callAll(interrupts) end
