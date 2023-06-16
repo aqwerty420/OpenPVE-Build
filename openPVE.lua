@@ -1107,6 +1107,9 @@ end
 function Tab.prototype.delay(self, params)
     return __TS__New(____exports.Delay, self, params)
 end
+function Tab.prototype.statusFrameHandler(self)
+    return __TS__New(____exports.StatusFrameHandler, self.tab)
+end
 ____exports.Group = __TS__Class()
 local Group = ____exports.Group
 Group.name = "Group"
@@ -1143,6 +1146,24 @@ function Checkbox.prototype.enabled(self)
 end
 function Checkbox.prototype.toggle(self)
     settings[self.var] = not self:enabled()
+end
+____exports.StatusFrameHandler = __TS__Class()
+local StatusFrameHandler = ____exports.StatusFrameHandler
+StatusFrameHandler.name = "StatusFrameHandler"
+__TS__ClassExtends(StatusFrameHandler, ____exports.Checkbox)
+function StatusFrameHandler.prototype.____constructor(self, tab)
+    StatusFrameHandler.____super.prototype.____constructor(self, tab, {var = "statusFrameDisabler", text = "Hide Status frame", tooltip = "Hides the status frame when enabled.", default = false})
+    self.statusFrameVisible = true
+    awful.addUpdateCallback(function() return self:update() end)
+end
+function StatusFrameHandler.prototype.update(self)
+    if self.statusFrameVisible and self:enabled() then
+        statusFrame:Hide()
+        self.statusFrameVisible = not self.statusFrameVisible
+    elseif not self.statusFrameVisible and not self:enabled() then
+        statusFrame:Show()
+        self.statusFrameVisible = not self.statusFrameVisible
+    end
 end
 ____exports.Dropdown = __TS__Class()
 local Dropdown = ____exports.Dropdown
@@ -1524,17 +1545,18 @@ local RotationToggle = ____components.RotationToggle
 local Tab = ____components.Tab
 local Toggle = ____components.Toggle
 local varSettings = ____components.varSettings
+local awfulUI = ____components.awfulUI
 local coreItems = require("core.items")
-____exports.rotationToggle = __TS__New(RotationToggle)
-____exports.rotationMode = __TS__New(RotationModeSwitch)
-____exports.cooldownsToggle = __TS__New(
+____exports.rotation = __TS__New(RotationToggle)
+____exports.mode = __TS__New(RotationModeSwitch)
+____exports.cooldowns = __TS__New(
     CooldownsToggle,
     varSettings.cdsToggleVar,
     varSettings.cdsDisableVar,
     varSettings.cdsDisableValueVar,
     "Cds: "
 )
-____exports.mCooldownsToggle = __TS__New(
+____exports.miniCooldowns = __TS__New(
     CooldownsToggle,
     varSettings.mCdsToggleVar,
     varSettings.mCdsDisableVar,
@@ -1549,6 +1571,7 @@ ____exports.startCombat = ____exports.generalTab:checkbox({var = "startCombat", 
 ____exports.generalTab:separator()
 ____exports.generalTab:header({text = "Targeting"})
 ____exports.autoTarget = ____exports.generalTab:checkbox({var = "autoTarget", text = "Auto Target", tooltip = "Automatically swap to the best target when the current one dies."})
+____exports.statusFrameHandler = ____exports.generalTab:statusFrameHandler()
 ____exports.cooldownsTab = __TS__New(Tab, "Cooldowns")
 ____exports.cooldownsTab:header({text = "TTD Checker"})
 ____exports.checkMinTTD = ____exports.cooldownsTab:checkbox({var = varSettings.minTTDVar, text = "Check for minimum TTD", tooltip = "Check for minimum TTD before using cooldowns.", default = false})
@@ -1606,6 +1629,44 @@ ____exports.interruptsTab:header({text = "Spells"})
 ____exports.defensivesTab = __TS__New(Tab, "Interrupts")
 ____exports.healthStone = ____exports.defensivesTab:playerDefensive({var = "healthStone", usable = coreItems.healthStone, minHP = 40})
 ____exports.refreshingHealingPotion = ____exports.defensivesTab:playerDefensive({var = "refreshingHealingPotion", usable = coreItems.refreshingHealingPotionThree, minHP = 40})
+awfulUI.cmd:New(function(msg)
+    repeat
+        local ____switch3 = msg
+        local ____cond3 = ____switch3 == "sf"
+        if ____cond3 then
+            ____exports.statusFrameHandler:toggle()
+            break
+        end
+        ____cond3 = ____cond3 or ____switch3 == "mode"
+        if ____cond3 then
+            ____exports.mode:invert()
+            break
+        end
+        ____cond3 = ____cond3 or ____switch3 == "cooldowns"
+        if ____cond3 then
+            ____exports.cooldowns:invert()
+            break
+        end
+        ____cond3 = ____cond3 or ____switch3 == "miniCooldowns"
+        if ____cond3 then
+            ____exports.miniCooldowns:invert()
+            break
+        end
+        ____cond3 = ____cond3 or ____switch3 == "defensives"
+        if ____cond3 then
+            ____exports.defensives:invert()
+            break
+        end
+        ____cond3 = ____cond3 or ____switch3 == "interrupts"
+        if ____cond3 then
+            ____exports.interrupts:invert()
+            break
+        end
+        do
+            break
+        end
+    until true
+end)
 return ____exports
  end,
 ["core.utility"] = function(...) 
@@ -2099,7 +2160,7 @@ end
 ____exports.isSingleTarget = function()
     local player = awful.player
     local enemiesAround = #____exports.modeUnits()
-    return coreUI.rotationMode:singleTarget() or enemiesAround < 2 or not player.hasTalent(hunterTalents.beastCleave) and enemiesAround < 3
+    return coreUI.mode:singleTarget() or enemiesAround < 2 or not player.hasTalent(hunterTalents.beastCleave) and enemiesAround < 3
 end
 ____exports.petStatus = {triedPetCall = false}
 ____exports.disengageForwardInfos = {inverseTime = 0, playerRotation = nil}
@@ -2641,7 +2702,7 @@ hunterSpells.barbedShot:Callback(
         end
         local frenzyRemain = pet.buffRemains(petBuffs.frenzy)
         if pet.buff(petBuffs.frenzy) ~= nil and frenzyRemain <= awful.gcd + awful.buffer * 2 and frenzyRemain >= awful.buffer then
-            if coreUI.rotationMode:singleTarget() then
+            if coreUI.mode:singleTarget() then
                 spell:Cast(awful.target)
             else
                 barbedShotLowestCallback(spell)
@@ -2659,7 +2720,7 @@ hunterSpells.barbedShot:Callback(
         end
         local frenzyRemain = pet.buffRemains(petBuffs.frenzy)
         if pet.buff(petBuffs.frenzy) and frenzyRemain <= awful.gcd + awful.buffer * 2 and frenzyRemain >= awful.buffer or player.hasTalent(hunterTalents.scentOfBlood) and pet.buffStacks(petBuffs.frenzy) < 3 and hunterUI.bestialWrath:usable() and hunterSpells.bestialWrath.cd <= awful.gcd then
-            if coreUI.rotationMode:singleTarget() then
+            if coreUI.mode:singleTarget() then
                 spell:Cast(awful.target)
             else
                 barbedShotLowestCallback(spell)
@@ -2675,7 +2736,7 @@ hunterSpells.barbedShot:Callback(
             return
         end
         if player.hasTalent(hunterTalents.wildInstincts) and player.buff(hunterTalents.callOfTheWild) or player.hasTalent(hunterTalents.wildCall) and hunterSpells.barbedShot.chargesFrac > 1.4 or fullRechargeTime(hunterSpells.barbedShot) < awful.gcd + awful.buffer * 2 and (not hunterUI.bestialWrath:usable() or hunterSpells.bestialWrath.cd > awful.gcd) or player.hasTalent(hunterTalents.scentOfBlood) and (hunterUI.bestialWrath:usable() and hunterSpells.bestialWrath.cd < 12 + awful.gcd + awful.buffer or fullRechargeTime(hunterSpells.barbedShot) + awful.gcd + awful.buffer < 8 and hunterUI.bestialWrath:usable() and hunterSpells.bestialWrath.cd < 24 + (8 - awful.gcd) + fullRechargeTime(hunterSpells.barbedShot) + awful.buffer) or awful.FightRemains() < 9 then
-            if coreUI.rotationMode:singleTarget() then
+            if coreUI.mode:singleTarget() then
                 spell:Cast(awful.target)
             else
                 barbedShotLowestCallback(spell)
