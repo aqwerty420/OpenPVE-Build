@@ -1541,6 +1541,17 @@ function RotationToggle.prototype.invert(self)
 end
 return ____exports
  end,
+["core.spells"] = function(...) 
+local ____exports = {}
+____exports.bloodFury = awful.NewSpell(20572, {targeted = false})
+____exports.ancestralCall = awful.NewSpell(274738, {targeted = false})
+____exports.fireblood = awful.NewSpell(265221, {targeted = false})
+____exports.lightsJudgment = awful.NewSpell(255647, {targeted = false, ranged = true, radius = 5})
+____exports.bagOfTricks = awful.NewSpell(312411, {targeted = true, ranged = true, damage = "physical"})
+____exports.berserking = awful.NewSpell(26297, {targeted = false})
+____exports.arcaneTorrent = awful.NewSpell(25046, {targeted = false})
+return ____exports
+ end,
 ["core.items"] = function(...) 
 local ____lualib = require("lualib_bundle")
 local __TS__Class = ____lualib.__TS__Class
@@ -1625,6 +1636,8 @@ local Tab = ____components.Tab
 local Toggle = ____components.Toggle
 local varSettings = ____components.varSettings
 local awfulUI = ____components.awfulUI
+local CooldownMode = ____components.CooldownMode
+local coreSpells = require("core.spells")
 local coreItems = require("core.items")
 ____exports.rotation = __TS__New(RotationToggle)
 ____exports.mode = __TS__New(RotationModeSwitch)
@@ -1688,6 +1701,25 @@ ____exports.mCdsDisablerValue = ____exports.cooldownsTab:slider({
     valueType = "sec"
 })
 ____exports.cooldownsTab:separator()
+local racials = {
+    coreSpells.bloodFury,
+    coreSpells.ancestralCall,
+    coreSpells.fireblood,
+    coreSpells.lightsJudgment,
+    coreSpells.bagOfTricks,
+    coreSpells.berserking,
+    coreSpells.arcaneTorrent
+}
+____exports.getRacialSpell = function()
+    for ____, racial in ipairs(racials) do
+        if racial.known then
+            return racial
+        end
+    end
+    return nil
+end
+local racialSpell = ____exports.getRacialSpell()
+____exports.racial = racialSpell ~= nil and ____exports.cooldownsTab:cooldown({var = "racial", usable = racialSpell, default = CooldownMode.Toggle}) or nil
 ____exports.interruptsTab = __TS__New(Tab, "Interrupts")
 ____exports.interruptsTab:header({text = "Conditions"})
 ____exports.whitelist = ____exports.interruptsTab:checkbox({var = "interruptWhitelist", text = "Whitelisted Only", tooltip = "Only interrupt spells on the whitelist.", default = false})
@@ -1710,34 +1742,34 @@ ____exports.healthStone = ____exports.defensivesTab:playerDefensive({var = "heal
 ____exports.refreshingHealingPotion = ____exports.defensivesTab:playerDefensive({var = "refreshingHealingPotion", usable = coreItems.refreshingHealingPotionThree, minHP = 40})
 awfulUI.cmd:New(function(msg)
     repeat
-        local ____switch3 = msg
-        local ____cond3 = ____switch3 == "sf"
-        if ____cond3 then
+        local ____switch7 = msg
+        local ____cond7 = ____switch7 == "sf"
+        if ____cond7 then
             ____exports.statusFrameHandler:toggle()
             break
         end
-        ____cond3 = ____cond3 or ____switch3 == "mode"
-        if ____cond3 then
+        ____cond7 = ____cond7 or ____switch7 == "mode"
+        if ____cond7 then
             ____exports.mode:invert()
             break
         end
-        ____cond3 = ____cond3 or ____switch3 == "cooldowns"
-        if ____cond3 then
+        ____cond7 = ____cond7 or ____switch7 == "cooldowns"
+        if ____cond7 then
             ____exports.cooldowns:invert()
             break
         end
-        ____cond3 = ____cond3 or ____switch3 == "miniCooldowns"
-        if ____cond3 then
+        ____cond7 = ____cond7 or ____switch7 == "miniCooldowns"
+        if ____cond7 then
             ____exports.miniCooldowns:invert()
             break
         end
-        ____cond3 = ____cond3 or ____switch3 == "defensives"
-        if ____cond3 then
+        ____cond7 = ____cond7 or ____switch7 == "defensives"
+        if ____cond7 then
             ____exports.defensives:invert()
             break
         end
-        ____cond3 = ____cond3 or ____switch3 == "interrupts"
-        if ____cond3 then
+        ____cond7 = ____cond7 or ____switch7 == "interrupts"
+        if ____cond7 then
             ____exports.interrupts:invert()
             break
         end
@@ -2593,6 +2625,7 @@ local petBuffs = ____lists.petBuffs
 local hunterTalents = ____lists.hunterTalents
 local hunterBuffs = ____lists.hunterBuffs
 local ____simc = require("core.simc")
+local castRegen = ____simc.castRegen
 local executeTime = ____simc.executeTime
 local fullRechargeTime = ____simc.fullRechargeTime
 local timeToMax = ____simc.timeToMax
@@ -2609,6 +2642,7 @@ local fourthyEngagedLosFacingUnits = ____utility.fourthyEngagedLosFacingUnits
 local fourthyEngagedLosUnits = ____utility.fourthyEngagedLosUnits
 local fourthyFightableLosFacingUnits = ____utility.fourthyFightableLosFacingUnits
 local petAlive = ____utility.petAlive
+local coreSpells = require("core.spells")
 local function barbedShotLowestCallback(spell)
     local target = hunterCache:lowestbarbedShot()
     return spell:Cast(target)
@@ -3046,6 +3080,63 @@ hunterSpells.misdirection:Callback(function(spell)
         spell:Cast(pet)
     end
 end)
+local function racialCallback(spell)
+    if coreUI.racial == nil then
+        return
+    end
+    if coreUI.racial:usable() then
+        spell:Cast()
+    end
+end
+coreSpells.bloodFury:Callback(racialCallback)
+coreSpells.ancestralCall:Callback(racialCallback)
+coreSpells.fireblood:Callback(racialCallback)
+coreSpells.berserking:Callback(racialCallback)
+coreSpells.arcaneTorrent:Callback(racialCallback)
+coreSpells.arcaneTorrent:Callback(
+    "bm.arcaneTorrent.st.1",
+    function(spell)
+        local player = awful.player
+        if coreUI.racial == nil then
+            return
+        end
+        if coreUI.racial:usable() and player.focus + castRegen(coreSpells.arcaneTorrent) + 15 < player.focusMax then
+            spell:Cast()
+        end
+    end
+)
+coreSpells.arcaneTorrent:Callback(
+    "bm.arcaneTorrent.cleave.1",
+    function(spell)
+        local player = awful.player
+        if coreUI.racial == nil then
+            return
+        end
+        if coreUI.racial:usable() and player.focus + castRegen(coreSpells.arcaneTorrent) + 30 < player.focusMax then
+            spell:Cast()
+        end
+    end
+)
+coreSpells.lightsJudgment:Callback(function(spell)
+    local player = awful.player
+    local target = awful.target
+    if coreUI.racial == nil then
+        return
+    end
+    if not player.buff(hunterBuffs.trueShot) and not player.buff(hunterBuffs.bestialWrath) and coreUI.racial:usable() then
+        spell:AoECast(target)
+    end
+end)
+coreSpells.bagOfTricks:Callback(function(spell)
+    local player = awful.player
+    local target = awful.target
+    if coreUI.racial == nil then
+        return
+    end
+    if (not player.buff(hunterBuffs.trueShot) and not player.buff(hunterBuffs.bestialWrath) or awful.FightRemains() < 5) and coreUI.racial:usable() then
+        spell:Cast(target)
+    end
+end)
 ____exports.load = function()
 end
 return ____exports
@@ -3071,6 +3162,7 @@ local bigWigsTimeLine = ____bigWigs.bigWigsTimeLine
 local hunterUI = require("hunter.ui")
 local ____callbacks = require("hunter.callbacks")
 local load = ____callbacks.load
+local coreSpells = require("core.spells")
 load()
 local function st()
     hunterSpells.barbedShot("bm.barbedShot.st.1")
@@ -3090,6 +3182,8 @@ local function st()
     hunterSpells.aspectOfTheWild()
     hunterSpells.cobraShot()
     hunterSpells.wailingArrow()
+    coreSpells.bagOfTricks()
+    coreSpells.arcaneTorrent("bm.arcaneTorrent.st.1")
 end
 local function cleave()
     hunterSpells.barbedShot("bm.barbedShot.cleave.1")
@@ -3110,9 +3204,16 @@ local function cleave()
     hunterSpells.aspectOfTheWild()
     hunterSpells.cobraShot("bm.cobraShot.cleave.1")
     hunterSpells.wailingArrow()
+    coreSpells.bagOfTricks()
+    coreSpells.arcaneTorrent("bm.arcaneTorrent.cleave.1")
     hunterSpells.killShot()
 end
 local function cds()
+    coreSpells.ancestralCall()
+    coreSpells.fireblood()
+    coreSpells.berserking()
+    coreSpells.bloodFury()
+    coreSpells.lightsJudgment()
 end
 local function opener()
     local pulltimer = bigWigsTimeLine:pullTimer()
