@@ -1573,6 +1573,8 @@ function Trinket.prototype.getAwfulItem(self)
     if trinketsCache[itemId] ~= nil then
         return trinketsCache[itemId]
     end
+    local item = awful.NewItem(itemId)
+    trinketsCache[itemId] = item
     return awful.NewItem(itemId)
 end
 function Trinket.prototype.updateAwfulItem(self)
