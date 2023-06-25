@@ -1739,7 +1739,7 @@ ____exports.minCastPercent = ____exports.interruptsTab:slider({
 ____exports.interruptDelay = ____exports.interruptsTab:delay({var = "interrupt", text = "Interrupt"})
 ____exports.generalTab:separator()
 ____exports.interruptsTab:header({text = "Spells"})
-____exports.defensivesTab = __TS__New(Tab, "Interrupts")
+____exports.defensivesTab = __TS__New(Tab, "Defensives")
 ____exports.healthStone = ____exports.defensivesTab:playerDefensive({var = "healthStone", usable = coreItems.healthStone, minHP = 40})
 ____exports.refreshingHealingPotion = ____exports.defensivesTab:playerDefensive({var = "refreshingHealingPotion", usable = coreItems.refreshingHealingPotionThree, minHP = 40})
 awfulUI.cmd:New(function(msg)
