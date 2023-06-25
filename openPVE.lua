@@ -2206,6 +2206,7 @@ ____exports.hunterTalents = {
     stampede = 201430,
     wailingArrow = 392060
 }
+____exports.serpentStingDuration = 12
 return ____exports
  end,
 ["hunter.spells"] = function(...) 
@@ -2626,10 +2627,13 @@ local ____lists = require("hunter.lists")
 local petBuffs = ____lists.petBuffs
 local hunterTalents = ____lists.hunterTalents
 local hunterBuffs = ____lists.hunterBuffs
+local serpentStingDuration = ____lists.serpentStingDuration
+local hunterDebuffs = ____lists.hunterDebuffs
 local ____simc = require("core.simc")
 local castRegen = ____simc.castRegen
 local executeTime = ____simc.executeTime
 local fullRechargeTime = ____simc.fullRechargeTime
+local isRefreshableDebuff = ____simc.isRefreshableDebuff
 local timeToMax = ____simc.timeToMax
 local ____cache = require("hunter.cache")
 local hunterCache = ____cache.hunterCache
@@ -2853,6 +2857,14 @@ local function explosiveShotCallback(spell)
     return spell:Cast(target)
 end
 hunterSpells.explosiveShot:Callback(explosiveShotCallback)
+local function serpentStingLowestForFullDuration(spell)
+    local lowestSerpentSting = hunterCache:minSerpentStingRemains(serpentStingDuration)
+    if isRefreshableDebuff(lowestSerpentSting, hunterDebuffs.serpentSting) and lowestSerpentSting.target.ttd > serpentStingDuration then
+        spell:Cast(lowestSerpentSting.target)
+    end
+end
+hunterSpells.serpentSting:Callback("bm.serpentSting.cleave.1", serpentStingLowestForFullDuration)
+hunterSpells.serpentSting:Callback("bm.serpentSting.st.1", serpentStingLowestForFullDuration)
 hunterSpells.bestialWrath:Callback(function(spell)
     local player = awful.player
     local target = awful.target
@@ -3180,6 +3192,7 @@ local function st()
     hunterSpells.killCommand()
     hunterSpells.barbedShot("bm.barbedShot.st.2")
     hunterSpells.direBeast()
+    hunterSpells.serpentSting("bm.serpentSting.st.1")
     hunterSpells.killShot()
     hunterSpells.aspectOfTheWild()
     hunterSpells.cobraShot()
@@ -3202,6 +3215,7 @@ local function cleave()
     hunterSpells.barbedShot("bm.barbedShot.cleave.2")
     hunterSpells.killCommand()
     hunterSpells.direBeast()
+    hunterSpells.serpentSting("bm.serpentSting.cleave.1")
     hunterSpells.barrage("bm.barrage.cleave.1")
     hunterSpells.aspectOfTheWild()
     hunterSpells.cobraShot("bm.cobraShot.cleave.1")
