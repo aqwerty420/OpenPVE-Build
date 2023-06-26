@@ -747,6 +747,10 @@ local kickCastData = {
     384273,
     372315,
     372394,
+    397386,
+    404754,
+    406210,
+    406399,
     265089,
     265091,
     278755,
@@ -1014,7 +1018,7 @@ local kickChannelingData = {
     372743,
     373680
 }
-local kickChanneledData = {388392, 377344, 375596}
+local kickChanneledData = {405886, 388392, 377344, 375596}
 local stunCastData = {
     397899,
     209027,
