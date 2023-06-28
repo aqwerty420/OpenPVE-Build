@@ -1707,6 +1707,8 @@ ____exports.mCdsDisablerValue = ____exports.cooldownsTab:slider({
     valueType = "sec"
 })
 ____exports.cooldownsTab:separator()
+____exports.trinket1 = ____exports.cooldownsTab:cooldown({var = "trinket1", header = "Trinket 1", tooltip = "Trinket 1 usage mode.", default = CooldownMode.Toggle})
+____exports.trinket2 = ____exports.cooldownsTab:cooldown({var = "trinket2", header = "Trinket 2", tooltip = "Trinket 2 usage mode.", default = CooldownMode.Toggle})
 local racials = {
     coreSpells.bloodFury,
     coreSpells.ancestralCall,
@@ -2025,6 +2027,8 @@ local healthStone = ____items.healthStone
 local refreshingHealingPotionOne = ____items.refreshingHealingPotionOne
 local refreshingHealingPotionThree = ____items.refreshingHealingPotionThree
 local refreshingHealingPotionTwo = ____items.refreshingHealingPotionTwo
+local trinket1 = ____items.trinket1
+local trinket2 = ____items.trinket2
 local coreUI = require("core.ui")
 local ____utility = require("core.utility")
 local canCombat = ____utility.canCombat
@@ -2066,6 +2070,10 @@ ____exports.playerHasAggro = function(units)
     end
     return false
 end
+____exports.coreTrinkets = {
+    function(options) return coreUI.trinket1:usable() and trinket1:use(options) end,
+    function(options) return coreUI.trinket2:usable() and trinket2:use(options) end
+}
 local FightTracker = __TS__Class()
 FightTracker.name = "FightTracker"
 function FightTracker.prototype.____constructor(self)
@@ -2512,6 +2520,7 @@ local ____utility = require("core.utility")
 local callAll = ____utility.callAll
 local ____rotation = require("core.rotation")
 local coreDefensives = ____rotation.coreDefensives
+local coreTrinkets = ____rotation.coreTrinkets
 local function callPet()
     local pet = awful.pet
     if hunterUI.petSlot:disabled() or not hunterUI.summonRevivePet:enabled() or pet.exists or petStatus.triedPetCall then
@@ -2536,6 +2545,13 @@ ____exports.defensivesHandler = function()
         return
     end
     callAll(defensives)
+end
+____exports.trinketsHanlder = function()
+    local player = awful.player
+    if not player.combat then
+        return
+    end
+    callAll(coreTrinkets)
 end
 local interrupts = {hunterSpells.muzzle, hunterSpells.freezingTrap, hunterSpells.intimidation}
 ____exports.interruptsHandler = function() return callAll(interrupts) end
@@ -3175,6 +3191,7 @@ local ____rotation = require("hunter.rotation")
 local defensivesHandler = ____rotation.defensivesHandler
 local interruptsHandler = ____rotation.interruptsHandler
 local petManager = ____rotation.petManager
+local trinketsHanlder = ____rotation.trinketsHanlder
 local ____bigWigs = require("core.bigWigs")
 local bigWigsTimeLine = ____bigWigs.bigWigsTimeLine
 local hunterUI = require("hunter.ui")
@@ -3265,6 +3282,7 @@ ____exports.bm = function()
         return
     end
     awful.call("StartAttack")
+    trinketsHanlder()
     cds()
     if isSingleTarget() then
         st()
